@@ -266,10 +266,14 @@ where
             continue;
         }
 
-        if input_tx
-            .blocking_send(read_buffer[..bytes_read].to_vec())
-            .is_err()
-        {
+        // Synthesise bracketed-paste wrapping for hosts that do not bracket
+        // pastes themselves (see `paste_detect`); a lone Enter is left untouched.
+        let burst = &read_buffer[..bytes_read];
+        let payload = match crate::paste_detect::maybe_wrap_paste(burst) {
+            Some(wrapped) => wrapped,
+            None => burst.to_vec(),
+        };
+        if input_tx.blocking_send(payload).is_err() {
             return Ok(());
         }
     }

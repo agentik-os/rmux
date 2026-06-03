@@ -29,6 +29,11 @@ mod terminal_response;
 
 const MAX_RETAINED_ATTACHED_CONTROL_INPUT: usize = DEFAULT_MAX_FRAME_LENGTH;
 
+/// Bracketed-paste start marker (`ESC [ 2 0 0 ~`).
+const BRACKETED_PASTE_START: &[u8] = b"\x1b[200~";
+/// Bracketed-paste end marker (`ESC [ 2 0 1 ~`).
+const BRACKETED_PASTE_END: &[u8] = b"\x1b[201~";
+
 pub(in crate::handler) fn retain_partial_attached_control_input(
     context: &str,
     pending_input: &mut Vec<u8>,
@@ -380,6 +385,46 @@ impl RequestHandler {
         write_bytes_to_target_io(write, bytes.to_vec())
             .await
             .map_err(io_other)
+    }
+
+    /// Flush an oversized, still-unterminated bracketed paste.
+    ///
+    /// `pending_input` is expected to begin with the bracketed-paste start
+    /// marker (it was classified as `BracketedPasteDecode::Partial`). If the
+    /// buffer has not yet exceeded the retain cap, this leaves it untouched and
+    /// returns `Ok(false)` (the caller keeps accumulating until the closing
+    /// marker arrives). Once it exceeds the cap, the leading start marker is
+    /// stripped and the paste body is forwarded verbatim to the pane, retaining
+    /// only a short tail in case the closing `\x1b[201~` is split across reads.
+    /// This replaces the previous hard error, which dropped the entire paste.
+    ///
+    /// Returns `Ok(true)` when bytes were forwarded to the pane.
+    async fn flush_oversized_bracketed_paste(
+        &self,
+        attach_pid: u32,
+        pending_input: &mut Vec<u8>,
+    ) -> io::Result<bool> {
+        if pending_input.len() <= MAX_RETAINED_ATTACHED_CONTROL_INPUT {
+            return Ok(false);
+        }
+
+        // Strip the leading start marker on the first flush so the literal
+        // `\x1b[200~` is not injected into the PTY as paste body.
+        if pending_input.starts_with(BRACKETED_PASTE_START) {
+            pending_input.drain(..BRACKETED_PASTE_START.len());
+        }
+
+        // Keep a tail the size of the end marker minus one so a closing
+        // `\x1b[201~` split across reads can still be recognised on the next
+        // call rather than being forwarded as literal body.
+        let keep = BRACKETED_PASTE_END.len().saturating_sub(1);
+        if pending_input.len() <= keep {
+            return Ok(false);
+        }
+        let flush_len = pending_input.len() - keep;
+        let body: Vec<u8> = pending_input.drain(..flush_len).collect();
+        self.write_attached_bytes(attach_pid, &body).await?;
+        Ok(true)
     }
 
     pub(crate) async fn flush_attached_pending_escape_input(

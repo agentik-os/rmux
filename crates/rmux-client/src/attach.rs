@@ -357,9 +357,18 @@ where
             Err(error) => return Err(ClientError::Io(error)),
         };
 
+        // Synthesise bracketed-paste wrapping for hosts (e.g. Termius over SSH)
+        // that do not bracket pastes themselves, so the server forwards the
+        // paste body verbatim instead of submitting on every embedded newline.
+        // A genuine lone Enter keypress is left untouched (see `paste_detect`).
+        let burst = &read_buffer[..bytes_read];
+        let keystroke = match crate::paste_detect::maybe_wrap_paste(burst) {
+            Some(wrapped) => wrapped,
+            None => burst.to_vec(),
+        };
         write_attach_message(
             &mut stream,
-            AttachMessage::Keystroke(AttachedKeystroke::new(read_buffer[..bytes_read].to_vec())),
+            AttachMessage::Keystroke(AttachedKeystroke::new(keystroke)),
         )?;
     }
 }

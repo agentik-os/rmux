@@ -162,6 +162,10 @@ pub(crate) fn render_pane_screen(
             )
             .as_slice(),
         );
+        // Re-assert a clean default style at the START of every rendered row so
+        // an absolute SGR colour left active by the previous row cannot leak
+        // into this row's default-coloured cells (invisible-text bug).
+        frame.extend_from_slice(b"\x1b[0m");
         frame.extend_from_slice(&line);
     }
     frame.extend_from_slice(b"\x1b[0m\x1b[u");

@@ -1,5 +1,8 @@
 use crate::hyperlinks::Hyperlinks;
-use crate::input::{Colour, GridAttr, COLOUR_DEFAULT, COLOUR_FLAG_256, COLOUR_FLAG_RGB};
+use crate::input::{
+    Colour, GridAttr, COLOUR_DEFAULT, COLOUR_FLAG_256, COLOUR_FLAG_RGB, COLOUR_NONE,
+    COLOUR_TERMINAL,
+};
 
 use super::{GridCell, GridCellFlags};
 
@@ -160,7 +163,12 @@ fn colour_codes_fg(colour: Colour) -> Vec<i32> {
 
     match colour {
         0..=7 => vec![colour + 30],
-        COLOUR_DEFAULT => vec![39],
+        // COLOUR_DEFAULT(8), COLOUR_TERMINAL(9), and COLOUR_NONE(-1) all mean
+        // "use the terminal default foreground" — matching the preview path
+        // (ratatui-rmux theme.rs maps Default|None|Terminal -> Color::Reset).
+        // Emitting 39 here prevents a stale absolute colour from leaking into
+        // default-coloured cells (invisible-text-on-theme-change bug).
+        COLOUR_DEFAULT | COLOUR_TERMINAL | COLOUR_NONE => vec![39],
         90..=97 => vec![colour],
         _ => Vec::new(),
     }
@@ -177,7 +185,12 @@ fn colour_codes_bg(colour: Colour) -> Vec<i32> {
 
     match colour {
         0..=7 => vec![colour + 40],
-        COLOUR_DEFAULT => vec![49],
+        // COLOUR_DEFAULT(8), COLOUR_TERMINAL(9), and COLOUR_NONE(-1) all mean
+        // "use the terminal default background" — matching the preview path
+        // (ratatui-rmux theme.rs maps Default|None|Terminal -> Color::Reset).
+        // Emitting 49 here prevents a stale absolute colour from leaking into
+        // default-coloured cells.
+        COLOUR_DEFAULT | COLOUR_TERMINAL | COLOUR_NONE => vec![49],
         90..=97 => vec![colour + 10],
         _ => Vec::new(),
     }

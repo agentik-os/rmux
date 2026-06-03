@@ -127,7 +127,17 @@ impl RequestHandler {
                         forwarded_to_pane = true;
                     }
                     pending_input.drain(..offset);
-                    retain_partial_attached_control_input("live bracketed paste", pending_input)?;
+                    // An unterminated bracketed paste that grows past the retain
+                    // cap must NOT error out (that drops the whole paste and can
+                    // kill the attach). Instead, flush the body so far verbatim
+                    // to the PTY and keep only a short tail buffered in case the
+                    // closing `\x1b[201~` marker is split across reads.
+                    if self
+                        .flush_oversized_bracketed_paste(attach_pid, pending_input)
+                        .await?
+                    {
+                        forwarded_to_pane = true;
+                    }
                     return Ok(forwarded_to_pane);
                 }
                 BracketedPasteDecode::NotPaste => {}
