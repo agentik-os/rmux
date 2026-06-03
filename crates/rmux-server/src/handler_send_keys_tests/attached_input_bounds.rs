@@ -37,13 +37,20 @@ async fn create_attached_live_session(
 }
 
 #[tokio::test]
-async fn live_attach_unterminated_bracketed_paste_is_bounded_without_pane_leak() {
+async fn live_attach_unterminated_bracketed_paste_flushes_body_without_error() {
+    // An unterminated bracketed paste that grows past the retain cap must NOT
+    // error out (that would drop the whole paste and could kill the attach).
+    // Instead the leading `\x1b[200~` start marker is stripped and the paste
+    // body is flushed verbatim to the pane, retaining only a short tail in case
+    // the closing `\x1b[201~` is split across reads.
+    const PASTE_END_LEN: usize = b"\x1b[201~".len();
+    const PASTE_START_LEN: usize = b"\x1b[200~".len();
+
     let handler = RequestHandler::new();
     let alpha = session_name("alpha");
     let requester_pid = std::process::id();
     let _control_rx = create_attached_live_session(&handler, &alpha, requester_pid).await;
 
-    #[cfg(windows)]
     let capture_target = {
         let target = PaneTarget::new(alpha.clone(), 0);
         let state = handler.state.lock().await;
@@ -58,23 +65,27 @@ async fn live_attach_unterminated_bracketed_paste_is_bounded_without_pane_leak()
         .expect("bracketed paste start is retained");
     assert_eq!(pending_input, b"\x1b[200~");
 
+    // Push the still-unterminated paste one byte past the retain cap.
     let overflow = vec![b'a'; DEFAULT_MAX_FRAME_LENGTH - pending_input.len() + 1];
-    let err = handler
+    handler
         .handle_attached_live_input(requester_pid, &mut pending_input, &overflow)
         .await
-        .expect_err("unterminated bracketed paste should be bounded");
-    assert_eq!(err.kind(), std::io::ErrorKind::InvalidData);
-    assert!(err.to_string().contains("live bracketed paste"));
-    assert!(pending_input.is_empty());
+        .expect("oversized unterminated bracketed paste flushes instead of erroring");
 
-    #[cfg(windows)]
-    {
-        let state = handler.state.lock().await;
-        assert_eq!(
-            state.pane_input_capture_for_test(&capture_target),
-            Some(Vec::new())
-        );
-    }
+    // Tail retained for a possibly-split closing marker: end-marker length - 1.
+    let retained_tail = PASTE_END_LEN - 1;
+    assert_eq!(pending_input.len(), retained_tail);
+    assert!(pending_input.iter().all(|byte| *byte == b'a'));
+
+    // Body flushed verbatim, start marker stripped, only the tail withheld.
+    let total_body = overflow.len(); // start marker is not part of the body
+    let _ = PASTE_START_LEN;
+    let expected_flushed = vec![b'a'; total_body - retained_tail];
+    let state = handler.state.lock().await;
+    assert_eq!(
+        state.pane_input_capture_for_test(&capture_target),
+        Some(expected_flushed)
+    );
 }
 
 #[tokio::test]
