@@ -188,10 +188,15 @@ fn session_name_rewrites_only_special_chars() {
 }
 
 #[test]
-fn session_name_vis_encodes_control_and_non_ascii_bytes() {
+fn session_name_sanitizes_control_to_dash_and_keeps_printable_unicode() {
+    // Previously this stored the un-targetable literal `a\001\177\303\251`
+    // (vis-style escaping leaked backslashes into the canonical identity).
+    // Now control bytes become `-` and the UTF-8 `é` is kept verbatim, so
+    // the stored name is always targetable by `-t`.
     let name = SessionName::new(String::from_utf8_lossy(b"a\x01\x7f\xc3\xa9").into_owned())
-        .expect("rewritten");
-    assert_eq!(name.as_str(), "a\\001\\177\\303\\251");
+        .expect("sanitized");
+    assert_eq!(name.as_str(), "a--é");
+    assert!(!name.as_str().contains('\\'));
 }
 
 #[test]

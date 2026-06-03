@@ -14,19 +14,50 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::RmuxError;
 
+/// Maximum number of characters retained in a sanitized session name.
+///
+/// Long names bloat every status line, format expansion, and target-error
+/// message; 64 is comfortably longer than any human-chosen name while
+/// keeping a hostile/garbage name from poisoning the session panel.
+pub const SESSION_NAME_MAX_CHARS: usize = 64;
+
 /// A validated RMUX session name.
 ///
-/// Empty strings are rejected. `:` and `.` characters are rewritten to `_`
-/// to keep names safe for use inside exact target syntax (`session`,
-/// `session:window`, `session:window.pane`). Non-printable bytes are
-/// rendered using tmux's `vis`-style escape sequences so display output is
-/// always single-line and non-controlling.
+/// Empty strings are rejected. The stored name is guaranteed to be
+/// **always-targetable**: it contains only printable, non-control
+/// characters and never a backslash, so it round-trips through
+/// `kill-session -t`, `list-panes -t`, and `display-message -t` without
+/// re-escaping.
+///
+/// Sanitization rules (see [`sanitize_session_name`]):
+/// - `:` and `.` are rewritten to `_` — they are target-syntax separators
+///   (`session:window.pane`) and must never appear inside a name.
+/// - Backslashes, ASCII/Unicode control characters, and whitespace control
+///   (newline / tab / CR) are rewritten to `-`. Printable Unicode (e.g.
+///   `é`) is preserved verbatim.
+/// - Leading/trailing `-` introduced by sanitization are trimmed, and the
+///   result is capped at [`SESSION_NAME_MAX_CHARS`] characters.
+///
+/// This makes sanitization **idempotent**: a name that is already clean
+/// re-sanitizes to itself, which is what keeps `-t <name>` target
+/// resolution from corrupting an already-stored name on lookup.
+///
+/// Historical note: earlier versions emitted tmux `vis`-style escape
+/// sequences (`\303\251` for a UTF-8 `é`, `\001` for control bytes) into
+/// the *stored* name. Those literal backslashes made the name
+/// un-targetable — every target layer re-escaped `\` to `\\` and the
+/// lookup never matched. `vis`-style escaping is a *display* concern
+/// (`rmux-core::vis`, formats output) and is deliberately kept out of the
+/// canonical identity.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 #[serde(transparent)]
 pub struct SessionName(String);
 
 impl SessionName {
-    /// Validates and stores a session name using tmux-compatible rewriting.
+    /// Validates and stores a session name, sanitizing it to an
+    /// always-targetable form. Empty input — or input that sanitizes to an
+    /// empty string — is rejected; every other input is mapped to a safe,
+    /// non-empty name.
     pub fn new(value: impl Into<String>) -> Result<Self, RmuxError> {
         let value = value.into();
 
@@ -34,7 +65,12 @@ impl SessionName {
             return Err(RmuxError::EmptySessionName);
         }
 
-        Ok(Self(sanitize_session_name(value.as_bytes())))
+        let sanitized = sanitize_session_name(&value);
+        if sanitized.is_empty() {
+            return Err(RmuxError::EmptySessionName);
+        }
+
+        Ok(Self(sanitized))
     }
 
     /// Returns the sanitized validated session name.
@@ -50,41 +86,34 @@ impl SessionName {
     }
 }
 
-fn sanitize_session_name(input: &[u8]) -> String {
+/// Rewrites an arbitrary user-supplied string into an always-targetable
+/// session name. See [`SessionName`] for the rule set.
+///
+/// Input is a valid `&str` (callers that start from raw bytes decode with
+/// `String::from_utf8_lossy` first, mapping malformed bytes to `U+FFFD`,
+/// which is printable and therefore preserved). The function is idempotent:
+/// `sanitize(sanitize(x)) == sanitize(x)`.
+fn sanitize_session_name(input: &str) -> String {
     let mut sanitized = String::with_capacity(input.len());
-    for &byte in input {
-        let rewritten = match byte {
-            b':' | b'.' => b'_',
-            other => other,
+
+    for ch in input.chars() {
+        let mapped = match ch {
+            // Target-syntax separators are never allowed inside a name.
+            ':' | '.' => '_',
+            // Backslashes corrupt every target layer (re-escape to `\\`),
+            // control characters break single-line display and enumeration.
+            '\\' => '-',
+            c if c.is_control() => '-',
+            // Everything else printable (incl. Unicode like `é`) is kept.
+            c => c,
         };
-        push_session_name_byte(rewritten, &mut sanitized);
-    }
-    sanitized
-}
-
-fn push_session_name_byte(byte: u8, output: &mut String) {
-    if (0x20..=0x7e).contains(&byte) && byte != b'\\' {
-        output.push(char::from(byte));
-        return;
+        sanitized.push(mapped);
     }
 
-    match byte {
-        b'\0' => output.push_str("\\000"),
-        b'\x07' => output.push_str("\\a"),
-        b'\x08' => output.push_str("\\b"),
-        b'\t' => output.push_str("\\t"),
-        b'\n' => output.push_str("\\n"),
-        b'\x0b' => output.push_str("\\v"),
-        b'\x0c' => output.push_str("\\f"),
-        b'\r' => output.push_str("\\r"),
-        b'\\' => output.push_str("\\\\"),
-        _ => {
-            output.push('\\');
-            output.push(char::from(b'0' + ((byte >> 6) & 0x7)));
-            output.push(char::from(b'0' + ((byte >> 3) & 0x7)));
-            output.push(char::from(b'0' + (byte & 0x7)));
-        }
-    }
+    // Trim cosmetic leading/trailing `-` introduced by sanitization, then
+    // cap length by characters (not bytes) so we never split a UTF-8 scalar.
+    let trimmed = sanitized.trim_matches('-');
+    trimmed.chars().take(SESSION_NAME_MAX_CHARS).collect()
 }
 
 impl AsRef<str> for SessionName {
@@ -258,7 +287,7 @@ impl From<u32> for PaneId {
 
 #[cfg(test)]
 mod tests {
-    use super::{PaneId, SessionId, SessionName, WindowId};
+    use super::{PaneId, SessionId, SessionName, WindowId, SESSION_NAME_MAX_CHARS};
     use crate::RmuxError;
 
     #[test]
@@ -323,6 +352,70 @@ mod tests {
             .expect("rewrites colons")
             .into_inner();
         assert_eq!(owned, "alpha_beta");
+    }
+
+    #[test]
+    fn session_name_never_stores_backslashes_or_controls() {
+        // The exact shape of the bug: a UTF-8 name with an accented char,
+        // spaces, parens, and a trailing space. Under the old escaper this
+        // became the un-targetable literal `...class\303\251s...`.
+        let name = SessionName::new("Causioais trous (classés par impact) _")
+            .expect("sanitizes to a clean name");
+        let stored = name.as_str();
+        assert!(
+            !stored.contains('\\'),
+            "stored name must never contain a backslash: {stored:?}"
+        );
+        assert!(
+            !stored.chars().any(char::is_control),
+            "stored name must never contain a control char: {stored:?}"
+        );
+        // The accented char is preserved verbatim (no octal escaping).
+        assert_eq!(stored, "Causioais trous (classés par impact) _");
+    }
+
+    #[test]
+    fn session_name_sanitization_is_idempotent() {
+        // The double-escape / re-escape bug: re-sanitizing a stored name
+        // must yield the same name, so `-t <stored>` lookups match.
+        for raw in [
+            "Causioais trous (classés par impact) _",
+            "a\u{1}\u{7f}é",
+            "weird\\name\twith\nbreaks",
+            "alpha:beta.gamma",
+        ] {
+            let first = SessionName::new(raw).expect("sanitizes");
+            let second = SessionName::new(first.as_str()).expect("re-sanitizes");
+            assert_eq!(
+                first, second,
+                "sanitization must be idempotent for {raw:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn session_name_rewrites_backslash_and_control_to_dash() {
+        let name = SessionName::new(String::from_utf8_lossy(b"a\x01\x7f\\b").into_owned())
+            .expect("sanitizes");
+        // a, control(0x01)->'-', del(0x7f)->'-', backslash->'-', b
+        assert_eq!(name.as_str(), "a---b");
+    }
+
+    #[test]
+    fn session_name_rejects_input_that_sanitizes_to_empty() {
+        // A name made entirely of control chars / separators trims to empty
+        // and must be rejected rather than producing a blank target.
+        assert_eq!(
+            SessionName::new("\u{1}\u{2}\u{3}"),
+            Err(RmuxError::EmptySessionName)
+        );
+    }
+
+    #[test]
+    fn session_name_caps_length_at_max_chars() {
+        let long = "x".repeat(SESSION_NAME_MAX_CHARS + 50);
+        let name = SessionName::new(long).expect("sanitizes");
+        assert_eq!(name.as_str().chars().count(), SESSION_NAME_MAX_CHARS);
     }
 
     #[test]
