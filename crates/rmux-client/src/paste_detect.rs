@@ -49,6 +49,16 @@ pub(crate) fn maybe_wrap_paste(burst: &[u8]) -> Option<Vec<u8>> {
 
 /// True when the burst looks like a paste that the host did NOT already bracket.
 fn looks_like_unbracketed_paste(burst: &[u8]) -> bool {
+    // A burst that BEGINS with ESC is terminal event traffic, not a paste:
+    // SGR mouse reports (`\x1b[<64;x;yM` — a wheel flick batches several per
+    // read(), easily exceeding PASTE_SIZE_THRESHOLD with no newline), key
+    // autorepeat (`\x1b[A\x1b[A…`), focus events, etc. Clipboard text starting
+    // with a raw ESC byte does not occur in practice. Wrapping these as a
+    // paste sends them to the PTY as literal text — killing mouse scroll.
+    if burst.first() == Some(&0x1b) {
+        return false;
+    }
+
     // Already bracketed by the host (or a marker is mid-stream) — never re-wrap;
     // the server handles real bracketed pastes already.
     if contains_subslice(burst, BRACKETED_PASTE_START)
@@ -147,6 +157,32 @@ mod tests {
     fn small_single_line_burst_is_not_wrapped() {
         let body = vec![b'x'; PASTE_SIZE_THRESHOLD - 1];
         assert_eq!(maybe_wrap_paste(&body), None);
+    }
+
+    #[test]
+    fn mouse_scroll_burst_is_not_wrapped() {
+        // A wheel flick delivers several SGR mouse reports in one read() —
+        // easily >= PASTE_SIZE_THRESHOLD bytes with no newline. Wrapping them
+        // as a paste sends them to the PTY as literal text and kills scroll.
+        let burst = b"\x1b[<64;42;10M\x1b[<64;42;10M\x1b[<65;42;10M";
+        assert!(burst.len() >= PASTE_SIZE_THRESHOLD);
+        assert_eq!(maybe_wrap_paste(burst), None);
+    }
+
+    #[test]
+    fn arrow_key_autorepeat_burst_is_not_wrapped() {
+        // Held-down arrow key: terminal autorepeat can batch many CSI
+        // sequences into a single read() burst.
+        let burst = b"\x1b[A".repeat(12);
+        assert!(burst.len() >= PASTE_SIZE_THRESHOLD);
+        assert_eq!(maybe_wrap_paste(&burst), None);
+    }
+
+    #[test]
+    fn key_sequence_with_embedded_enter_is_not_wrapped() {
+        // Up, Enter, Up batched into one burst over a slow link is keyboard
+        // traffic, not a paste — the embedded newline must not trigger wrap.
+        assert_eq!(maybe_wrap_paste(b"\x1b[A\r\x1b[A"), None);
     }
 
     #[test]
