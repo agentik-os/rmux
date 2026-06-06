@@ -45,6 +45,13 @@ const POLL_TIMEOUT: Timespec = Timespec {
     tv_sec: 0,
     tv_nsec: 100_000_000,
 };
+/// Poll timeout while a synthesised bracketed paste is open: once the input
+/// stays quiet this long, the closing `\x1b[201~` is emitted (see
+/// `paste_detect::SYNTH_PASTE_QUIET_MS`).
+const SYNTH_QUIET_TIMEOUT: Timespec = Timespec {
+    tv_sec: 0,
+    tv_nsec: crate::paste_detect::SYNTH_PASTE_QUIET_MS as i64 * 1_000_000,
+};
 
 /// Runs the attach loop using the process stdin/stdout streams.
 pub fn attach_terminal(stream: UnixStream) -> std::result::Result<(), ClientError> {
@@ -309,6 +316,9 @@ where
     Input: Read + AsFd,
 {
     let mut read_buffer = [0_u8; READ_BUFFER_SIZE];
+    // Stateful paste classifier: keeps a paste that spans several read()
+    // bursts a single bracketed block (see `paste_detect`).
+    let mut paste_filter = crate::paste_detect::PasteFilter::new();
 
     loop {
         if closed.load(Ordering::SeqCst) {
@@ -317,6 +327,9 @@ where
 
         drain_resize_events(&mut stream, &resize_events, resize_geometry_enabled)?;
         if locked.load(Ordering::SeqCst) {
+            // The server clears its pending input while locked; drop any open
+            // paste state instead of closing it into a cleared buffer.
+            paste_filter.reset();
             thread::sleep(Duration::from_millis(20));
             continue;
         }
@@ -325,8 +338,24 @@ where
             &input,
             PollFlags::IN | PollFlags::ERR | PollFlags::HUP,
         )];
-        match poll(&mut fds, Some(&POLL_TIMEOUT)) {
-            Ok(0) => continue,
+        // While a synthesised paste is open, poll with the short quiet window
+        // so the closing marker is emitted promptly once the paste's last
+        // burst has arrived.
+        let timeout = if paste_filter.synth_open() {
+            &SYNTH_QUIET_TIMEOUT
+        } else {
+            &POLL_TIMEOUT
+        };
+        match poll(&mut fds, Some(timeout)) {
+            Ok(0) => {
+                if let Some(end) = paste_filter.on_quiet() {
+                    write_attach_message(
+                        &mut stream,
+                        AttachMessage::Keystroke(AttachedKeystroke::new(end)),
+                    )?;
+                }
+                continue;
+            }
             Ok(_) => {}
             Err(rustix::io::Errno::INTR) => continue,
             Err(error) => return Err(ClientError::Io(error.into())),
@@ -341,6 +370,7 @@ where
         }
         if !ready.contains(PollFlags::IN) {
             if ready.contains(PollFlags::HUP) || ready.contains(PollFlags::ERR) {
+                close_open_synth_paste(&mut stream, &mut paste_filter)?;
                 shutdown_attach_writes(&stream)?;
                 return Ok(());
             }
@@ -349,6 +379,7 @@ where
 
         let bytes_read = match input.read(&mut read_buffer) {
             Ok(0) => {
+                close_open_synth_paste(&mut stream, &mut paste_filter)?;
                 shutdown_attach_writes(&stream)?;
                 return Ok(());
             }
@@ -360,17 +391,30 @@ where
         // Synthesise bracketed-paste wrapping for hosts (e.g. Termius over SSH)
         // that do not bracket pastes themselves, so the server forwards the
         // paste body verbatim instead of submitting on every embedded newline.
-        // A genuine lone Enter keypress is left untouched (see `paste_detect`).
+        // A genuine lone Enter keypress is left untouched, and a paste spanning
+        // several read() bursts stays ONE bracketed block (see `paste_detect`).
         let burst = &read_buffer[..bytes_read];
-        let keystroke = match crate::paste_detect::maybe_wrap_paste(burst) {
-            Some(wrapped) => wrapped,
-            None => burst.to_vec(),
-        };
+        let keystroke = paste_filter.on_burst(burst);
         write_attach_message(
             &mut stream,
             AttachMessage::Keystroke(AttachedKeystroke::new(keystroke)),
         )?;
     }
+}
+
+/// Best-effort close of an open synthesised paste before the input stream
+/// shuts down, so the server is not left holding an unterminated block.
+fn close_open_synth_paste(
+    stream: &mut UnixStream,
+    paste_filter: &mut crate::paste_detect::PasteFilter,
+) -> std::result::Result<(), ClientError> {
+    if let Some(end) = paste_filter.on_quiet() {
+        write_attach_message(
+            stream,
+            AttachMessage::Keystroke(AttachedKeystroke::new(end)),
+        )?;
+    }
+    Ok(())
 }
 
 fn output_loop<Output>(

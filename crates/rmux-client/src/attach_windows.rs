@@ -236,6 +236,9 @@ where
     Input: Read + AsRawHandle,
 {
     let mut read_buffer = [0_u8; READ_BUFFER_SIZE];
+    // Stateful paste classifier: keeps a paste that spans several read()
+    // bursts a single bracketed block (see `paste_detect`).
+    let mut paste_filter = crate::paste_detect::PasteFilter::new();
     let input_handle = input.as_raw_handle();
     if is_absent_input_handle(input_handle) {
         lock_state.wait_until_closed();
@@ -248,7 +251,20 @@ where
         }
 
         let locked = lock_state.is_locked();
-        if !terminal::wait_for_key_input(input_handle, 50).map_err(ClientError::Io)? {
+        // While a synthesised paste is open, wait with the short quiet window
+        // so the closing marker is emitted promptly once the paste's last
+        // burst has arrived.
+        let wait_ms = if paste_filter.synth_open() {
+            crate::paste_detect::SYNTH_PASTE_QUIET_MS as u32
+        } else {
+            50
+        };
+        if !terminal::wait_for_key_input(input_handle, wait_ms).map_err(ClientError::Io)? {
+            if let Some(end) = paste_filter.on_quiet() {
+                if input_tx.blocking_send(end).is_err() {
+                    return Ok(());
+                }
+            }
             if lock_state.is_closed() || input_tx.is_closed() {
                 return Ok(());
             }
@@ -256,23 +272,32 @@ where
         }
 
         let bytes_read = match input.read(&mut read_buffer) {
-            Ok(0) => return Ok(()),
+            Ok(0) => {
+                // Best-effort close of an open synthesised paste so the server
+                // is not left holding an unterminated block.
+                if let Some(end) = paste_filter.on_quiet() {
+                    let _ = input_tx.blocking_send(end);
+                }
+                return Ok(());
+            }
             Ok(bytes_read) => bytes_read,
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
             Err(error) => return Err(ClientError::Io(error)),
         };
 
         if locked || lock_state.is_locked() {
+            // The server clears its pending input while locked; drop any open
+            // paste state instead of closing it into a cleared buffer.
+            paste_filter.reset();
             continue;
         }
 
         // Synthesise bracketed-paste wrapping for hosts that do not bracket
-        // pastes themselves (see `paste_detect`); a lone Enter is left untouched.
+        // pastes themselves (see `paste_detect`); a lone Enter is left
+        // untouched, and a paste spanning several read() bursts stays ONE
+        // bracketed block.
         let burst = &read_buffer[..bytes_read];
-        let payload = match crate::paste_detect::maybe_wrap_paste(burst) {
-            Some(wrapped) => wrapped,
-            None => burst.to_vec(),
-        };
+        let payload = paste_filter.on_burst(burst);
         if input_tx.blocking_send(payload).is_err() {
             return Ok(());
         }
