@@ -25,8 +25,11 @@ English · [Français](README.fr.md) · [简体中文](README.zh-CN.md) · [日�
 
 </div>
 
+> [!NOTE]
+> This checkout is the **`agentik-os/rmux`** fork (remote `origin`) of the upstream project **[`Helvesec/rmux`](https://github.com/Helvesec/rmux)** (remote `upstream`). The hosted distribution channels referenced below — `rmux.io`, the `crates.io` packages, and the `helvesec/rmux` GitHub releases — belong to **upstream** and are not published by this fork. Use them to track upstream; build this fork from the local checkout (`cargo install --path . --locked`).
+
 > [!IMPORTANT]
-> Current release: **v0.3.1**, published on **25 May 2026**. All 90 tmux-compatible commands are implemented, but bugs are expected — this is a fresh public preview. Please [file issues](https://github.com/helvesec/rmux/issues) if you hit one.
+> Current release: **v0.3.1**, published on **25 May 2026**. All 90 tmux-compatible commands are implemented, but bugs are expected — this is a fresh public preview. Please [file issues](https://github.com/Helvesec/rmux/issues) if you hit one.
 
 ## Why RMUX
 
@@ -51,6 +54,8 @@ Short, real examples of what RMUX can be used for.
 </table>
 
 ## Install
+
+> The hosted installers, `crates.io` package, and GitHub release artifacts below are published by **upstream `helvesec/rmux`**, not by this `agentik-os` fork. To run this fork's code, use the **local checkout** path (`cargo install --path . --locked`).
 
 Prebuilt binary for macOS and Linux:
 
