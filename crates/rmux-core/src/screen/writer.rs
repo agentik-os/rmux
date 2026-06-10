@@ -1,6 +1,10 @@
 use crate::grid::{Grid, GridCell, GridCellFlags, GridLineFlags};
 use crate::input::mode;
-use crate::input::{CellState, InputEndType, ScreenWriter, COLOUR_DEFAULT};
+use crate::input::{
+    colour_join_rgb, colour_to_rgb, CellState, Colour, InputEndType, ScreenWriter, COLOUR_DEFAULT,
+    COLOUR_NONE,
+};
+use crate::style::parse_colour;
 use crate::TerminalPassthrough;
 
 use super::{SavedGrid, Screen};
@@ -527,13 +531,90 @@ impl ScreenWriter for Screen {
 
     fn osc_palette(&mut self, _data: &str, _end: InputEndType) {}
     fn osc_notification(&mut self, _data: &str) {}
-    fn osc_fg_colour(&mut self, _data: &str, _end: InputEndType) {}
-    fn osc_bg_colour(&mut self, _data: &str, _end: InputEndType) {}
+    fn osc_fg_colour(&mut self, data: &str, end: InputEndType) -> Option<String> {
+        osc_colour_request(data, end, 10, &mut self.osc_default_fg, OSC_FALLBACK_FG)
+    }
+    fn osc_bg_colour(&mut self, data: &str, end: InputEndType) -> Option<String> {
+        osc_colour_request(data, end, 11, &mut self.osc_default_bg, OSC_FALLBACK_BG)
+    }
     fn osc_cursor_colour(&mut self, _data: &str, _end: InputEndType) {}
     fn osc_clipboard(&mut self, _data: &str, _end: InputEndType) {}
     fn osc_reset_palette(&mut self, _data: &str) {}
-    fn osc_reset_fg(&mut self) {}
-    fn osc_reset_bg(&mut self) {}
+    fn osc_reset_fg(&mut self) {
+        self.osc_default_fg = COLOUR_NONE;
+    }
+    fn osc_reset_bg(&mut self) {
+        self.osc_default_bg = COLOUR_NONE;
+    }
     fn osc_reset_cursor(&mut self) {}
     fn osc_shell_integration(&mut self, _data: &str) {}
+
+    fn default_bg_rgb(&self) -> Option<(u8, u8, u8)> {
+        Some(colour_to_rgb(self.osc_default_bg).unwrap_or(OSC_FALLBACK_BG))
+    }
+}
+
+// rmux does not know the attached terminal's real palette (it draws onto the
+// client's existing background), so unanswered OSC 10/11 queries fall back to
+// the ubiquitous dark scheme: theme probes (Claude Code's `OSC 11 ; ?`) need
+// SOME answer — silence makes them hang on their timeout.
+const OSC_FALLBACK_FG: (u8, u8, u8) = (255, 255, 255);
+const OSC_FALLBACK_BG: (u8, u8, u8) = (0, 0, 0);
+
+/// Handles one OSC 10/11 payload against the stored pane default colour:
+/// `?` produces the query reply, anything else parses and stores a new value.
+fn osc_colour_request(
+    data: &str,
+    end: InputEndType,
+    code: u32,
+    slot: &mut Colour,
+    fallback: (u8, u8, u8),
+) -> Option<String> {
+    let spec = data.trim();
+    if spec == "?" {
+        let (r, g, b) = colour_to_rgb(*slot).unwrap_or(fallback);
+        // Reply with the same terminator style as the query (tmux input_reply).
+        let end = match end {
+            InputEndType::Bel => "\x07",
+            InputEndType::St => "\x1b\\",
+        };
+        // 16-bit-per-channel rgb form, as xterm and tmux reply.
+        return Some(format!(
+            "\x1b]{code};rgb:{r:02x}{r:02x}/{g:02x}{g:02x}/{b:02x}{b:02x}{end}"
+        ));
+    }
+    if let Some(colour) = parse_osc_colour_spec(spec) {
+        *slot = colour;
+    }
+    None
+}
+
+/// Parses an OSC colour spec: X11 `rgb:R/G/B` (1-4 hex digits per channel)
+/// or any tmux colour token (`#rrggbb`, names, `colourN`).
+fn parse_osc_colour_spec(spec: &str) -> Option<Colour> {
+    if let Some(body) = spec.strip_prefix("rgb:") {
+        let mut parts = body.split('/');
+        let r = parse_x11_channel(parts.next()?)?;
+        let g = parse_x11_channel(parts.next()?)?;
+        let b = parse_x11_channel(parts.next()?)?;
+        if parts.next().is_some() {
+            return None;
+        }
+        return Some(colour_join_rgb(r, g, b));
+    }
+    parse_colour(spec).ok()
+}
+
+/// Scales an X11 hex channel (1-4 digits) to 8 bits.
+fn parse_x11_channel(text: &str) -> Option<u8> {
+    if text.is_empty() || text.len() > 4 || !text.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return None;
+    }
+    let value = u16::from_str_radix(text, 16).ok()?;
+    Some(match text.len() {
+        1 => (value * 17) as u8, // 0xf scales to 0xff.
+        2 => value as u8,
+        3 => (value >> 4) as u8,
+        _ => (value >> 8) as u8,
+    })
 }

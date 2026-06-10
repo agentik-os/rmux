@@ -140,6 +140,19 @@ impl EnvironmentStore {
             .and_then(EnvironmentEntry::value)
     }
 
+    /// Returns whether the variable carries an explicit hidden/cleared entry
+    /// (a `set-environment -r`/`-h` style removal) in the session or global
+    /// scope. Callers that inject defaults (e.g. the pane COLORTERM default)
+    /// must respect such an explicit removal instead of re-adding the key.
+    #[must_use]
+    pub fn is_explicitly_removed(&self, session_name: Option<&SessionName>, name: &str) -> bool {
+        let entry = session_name
+            .and_then(|s| self.sessions.get(s))
+            .and_then(|values| values.get(name))
+            .or_else(|| self.global.get(name));
+        entry.is_some_and(|e| e.is_hidden() || e.is_cleared())
+    }
+
     /// Resolves a single variable using session-local then global lookup.
     #[must_use]
     pub fn resolve(&self, session_name: Option<&SessionName>, name: &str) -> Option<&str> {

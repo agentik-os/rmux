@@ -13,6 +13,7 @@ use crate::pane_screen_state::PaneScreenState;
 mod capabilities;
 mod colours;
 mod defaults;
+mod downgrade;
 mod features;
 mod templates;
 
@@ -21,6 +22,7 @@ use capabilities::{decode_capability_string, parse_capability_override, split_ov
 #[cfg(test)]
 use colours::colour_to_rgb;
 use colours::colour_to_rgb_string;
+use downgrade::{downgrade_sgr_frame, SgrCaps};
 #[cfg(test)]
 use templates::sanitize_osc_payload;
 use templates::{
@@ -268,16 +270,28 @@ impl OuterTerminal {
             return Vec::new();
         }
 
+        // The renderer emits truecolor and colon-form SGR unconditionally;
+        // this per-client boundary is where frames get rewritten down to
+        // what the attached terminal actually understands.
+        let frame = downgrade_sgr_frame(
+            frame,
+            SgrCaps {
+                rgb: self.supports_rgb,
+                usstyle: self.supports_usstyle,
+                overline: self.supports_overline,
+            },
+        );
+
         let Some(start) = self.render_sync_sequence(1) else {
-            return frame.to_vec();
+            return frame.into_owned();
         };
         let Some(end) = self.render_sync_sequence(2) else {
-            return frame.to_vec();
+            return frame.into_owned();
         };
 
         let mut wrapped = Vec::with_capacity(start.len() + frame.len() + end.len());
         wrapped.extend_from_slice(start.as_bytes());
-        wrapped.extend_from_slice(frame);
+        wrapped.extend_from_slice(&frame);
         wrapped.extend_from_slice(end.as_bytes());
         wrapped
     }

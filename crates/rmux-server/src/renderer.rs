@@ -135,7 +135,12 @@ pub(crate) fn render_pane_screen(
 
     let styled_screen = styled_pane_screen(session, options, pane, screen);
 
-    let rendered = styled_screen.capture_transcript(
+    // Each row must be captured with a fresh ANSI state: the per-row \x1b[0m
+    // below resets the outer terminal, so a row that relies on the previous
+    // row's carried SGR diff (capture_transcript keeps one state across rows)
+    // would lose its colours — full-screen backgrounds went default from row
+    // two onward on every attach/switch/resize full redraw.
+    let rendered = styled_screen.capture_transcript_lines_independent(
         ScreenCaptureRange::default(),
         GridRenderOptions {
             with_sequences: true,
@@ -147,7 +152,7 @@ pub(crate) fn render_pane_screen(
     let utf8 = Utf8Config::from_options(options);
     let mut frame = Vec::new();
     frame.extend_from_slice(b"\x1b[s\x1b[0m");
-    for (row, line) in rendered.split(|byte| *byte == b'\n').enumerate() {
+    for (row, line) in rendered.iter().enumerate() {
         if row >= usize::from(pane_geometry.rows()) {
             break;
         }

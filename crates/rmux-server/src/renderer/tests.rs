@@ -299,6 +299,28 @@ fn pane_render_leaves_default_cells_at_terminal_default_without_user_style() {
 }
 
 #[test]
+fn pane_render_repeats_continued_style_on_every_row() {
+    // Full-redraw frames reset to \x1b[0m at each row start, so a style that
+    // continues from the previous row must be re-emitted on every row — a
+    // carried cross-row SGR diff loses full-screen backgrounds from row two
+    // onward on attach/switch/resize.
+    let size = TerminalSize { cols: 4, rows: 3 };
+    let session = Session::new(session_name("alpha"), size);
+    let pane = session.window().pane(0).expect("pane 0 exists");
+    let screen = screen_with(b"\x1b[48;2;20;30;40mAAAA\r\nBBBB", size);
+    let options = OptionStore::new();
+
+    let frame = String::from_utf8(super::render_pane_screen(&session, &options, pane, &screen))
+        .expect("pane frame is utf-8");
+
+    assert_eq!(
+        frame.matches("\u{1b}[48;2;20;30;40m").count(),
+        2,
+        "both rows must carry the truecolor background: {frame:?}"
+    );
+}
+
+#[test]
 fn pane_render_applies_window_style_to_default_cells() {
     let size = TerminalSize { cols: 6, rows: 2 };
     let session = Session::new(session_name("alpha"), size);

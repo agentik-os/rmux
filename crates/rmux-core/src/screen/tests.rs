@@ -400,3 +400,58 @@ fn backspace_steps_over_wide_characters_and_wrapped_padding() {
     <Screen as crate::input::ScreenWriter>::backspace(&mut screen);
     assert_eq!((screen.cursor_x, screen.cursor_y), (0, 0));
 }
+
+// ─── OSC 10/11 default-colour query/set ────────────────────────────
+
+#[test]
+fn osc_11_query_replies_with_dark_fallback_background() {
+    let mut screen = new_screen(10, 2, 10);
+    let mut parser = InputParser::new();
+    parser.parse(b"\x1b]11;?\x1b\\", &mut screen);
+
+    let replies = String::from_utf8(parser.take_replies()).expect("reply is utf8");
+    assert_eq!(replies, "\x1b]11;rgb:0000/0000/0000\x1b\\");
+}
+
+#[test]
+fn osc_10_query_reply_uses_the_query_terminator_style() {
+    let mut screen = new_screen(10, 2, 10);
+    let mut parser = InputParser::new();
+    parser.parse(b"\x1b]10;?\x07", &mut screen);
+
+    let replies = String::from_utf8(parser.take_replies()).expect("reply is utf8");
+    assert_eq!(replies, "\x1b]10;rgb:ffff/ffff/ffff\x07");
+}
+
+#[test]
+fn osc_11_set_then_query_round_trips_and_111_resets() {
+    let mut screen = new_screen(10, 2, 10);
+    let mut parser = InputParser::new();
+    parser.parse(b"\x1b]11;rgb:1e/2a/3c\x1b\\\x1b]11;?\x1b\\", &mut screen);
+    let replies = String::from_utf8(parser.take_replies()).expect("reply is utf8");
+    assert_eq!(replies, "\x1b]11;rgb:1e1e/2a2a/3c3c\x1b\\");
+
+    parser.parse(b"\x1b]111;\x1b\\\x1b]11;?\x1b\\", &mut screen);
+    let replies = String::from_utf8(parser.take_replies()).expect("reply is utf8");
+    assert_eq!(replies, "\x1b]11;rgb:0000/0000/0000\x1b\\");
+}
+
+#[test]
+fn dsr_996_theme_query_reports_dark_for_default_background() {
+    let mut screen = new_screen(10, 2, 10);
+    let mut parser = InputParser::new();
+    parser.parse(b"\x1b[?996n", &mut screen);
+
+    let replies = String::from_utf8(parser.take_replies()).expect("reply is utf8");
+    assert_eq!(replies, "\x1b[?997;1n");
+}
+
+#[test]
+fn dsr_996_theme_query_reports_light_after_light_osc_11_set() {
+    let mut screen = new_screen(10, 2, 10);
+    let mut parser = InputParser::new();
+    parser.parse(b"\x1b]11;#fafafa\x1b\\\x1b[?996n", &mut screen);
+
+    let replies = String::from_utf8(parser.take_replies()).expect("reply is utf8");
+    assert_eq!(replies, "\x1b[?997;2n");
+}

@@ -94,6 +94,11 @@ impl TerminalProfile {
         requested_cwd: Option<&Path>,
     ) -> Result<Self, RmuxError> {
         let mut resolved = base_process_environment();
+        // Pane colour depth must not be an accident of whichever client
+        // first started the daemon: pull the daemon-inherited COLORTERM out
+        // so the terminal-defaults block below can decide it deterministically
+        // (session/spawn environments and overrides still win).
+        let inherited_colorterm = resolved.remove("COLORTERM");
         environment.apply_to_process_environment(Some(session_name), &mut resolved);
         if let Some(spawn_environment) = spawn_environment {
             for (name, value) in spawn_environment {
@@ -112,9 +117,25 @@ impl TerminalProfile {
                 "TERM_PROGRAM_VERSION".to_owned(),
                 env!("CARGO_PKG_VERSION").to_owned(),
             );
+            // Panes always advertise truecolor (tmux-direct's model): apps
+            // may emit RGB freely because the per-client downgrade layer
+            // (outer_terminal::downgrade) re-encodes it for attached
+            // terminals that cannot take it. EXCEPT when the user explicitly
+            // removed COLORTERM via set-environment (hidden/cleared entry):
+            // an explicit removal must win over this default, not be
+            // silently re-added.
+            if !environment.is_explicitly_removed(Some(session_name), "COLORTERM") {
+                resolved
+                    .entry("COLORTERM".to_owned())
+                    .or_insert_with(|| "truecolor".to_owned());
+            }
         } else {
             resolved.remove("TERM_PROGRAM");
             resolved.remove("TERM_PROGRAM_VERSION");
+            // Non-pane spawns keep the historical pass-through behaviour.
+            if let Some(value) = inherited_colorterm {
+                resolved.entry("COLORTERM".to_owned()).or_insert(value);
+            }
         }
 
         resolved.insert(

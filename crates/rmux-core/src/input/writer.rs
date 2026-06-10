@@ -150,10 +150,21 @@ pub trait ScreenWriter {
     }
     /// Handle OSC 9 notification.
     fn osc_notification(&mut self, data: &str) {}
-    /// Handle OSC 10 fg colour query/set.
-    fn osc_fg_colour(&mut self, data: &str, end: InputEndType) {}
-    /// Handle OSC 11 bg colour query/set.
-    fn osc_bg_colour(&mut self, data: &str, end: InputEndType) {}
+    /// Handle OSC 10 fg colour query/set. A `?` payload returns the reply
+    /// the parser must send back to the pane application.
+    fn osc_fg_colour(&mut self, data: &str, end: InputEndType) -> Option<String> {
+        None
+    }
+    /// Handle OSC 11 bg colour query/set. A `?` payload returns the reply
+    /// the parser must send back to the pane application.
+    fn osc_bg_colour(&mut self, data: &str, end: InputEndType) -> Option<String> {
+        None
+    }
+    /// Returns the effective default background as RGB, for light/dark
+    /// theme reports (DSR 996).
+    fn default_bg_rgb(&self) -> Option<(u8, u8, u8)> {
+        None
+    }
     /// Handle OSC 12 cursor colour query/set.
     fn osc_cursor_colour(&mut self, data: &str, end: InputEndType) {}
     /// Handle OSC 52 clipboard.

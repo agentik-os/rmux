@@ -21,8 +21,8 @@ mod writer;
 
 pub use cell::{CellState, GridAttr, SavedState};
 pub use colour::{
-    colour_join_rgb, Colour, COLOUR_DEFAULT, COLOUR_FLAG_256, COLOUR_FLAG_RGB, COLOUR_NONE,
-    COLOUR_TERMINAL,
+    colour_join_rgb, colour_to_rgb, Colour, COLOUR_DEFAULT, COLOUR_FLAG_256, COLOUR_FLAG_RGB,
+    COLOUR_NONE, COLOUR_TERMINAL,
 };
 pub use dispatch::{CsiCommand, DcsPayload, EscCommand, InputAction, OscCommand, ScreenWriter};
 pub use params::{InputParam, ParamType};

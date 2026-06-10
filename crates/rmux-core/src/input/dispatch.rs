@@ -318,8 +318,22 @@ pub(crate) fn dispatch_csi(parser: &mut InputParser, writer: &mut dyn ScreenWrit
             }
         }
         CsiCommand::DsrPrivate => {
-            // Private DSR: theme query etc. — server-level concerns.
-            // For now, no-op.
+            match parser.param_list.get(0, 0, 0) {
+                // CSI ? 996 n — light/dark theme query. Report from the
+                // effective default background; apps fall back to guessing
+                // when this stays silent.
+                996 => {
+                    if let Some((r, g, b)) = writer.default_bg_rgb() {
+                        // ITU-R BT.601 perceived luminance.
+                        let luma = (299 * u32::from(r) + 587 * u32::from(g) + 114 * u32::from(b))
+                            / 1000;
+                        let kind = if luma < 128 { 1 } else { 2 };
+                        let reply = format!("\x1b[?997;{kind}n");
+                        parser.reply(&reply);
+                    }
+                }
+                _ => {}
+            }
         }
         CsiCommand::QueryPrivate => {
             // DECRPM query — server-level concern, requires option access.
@@ -485,8 +499,18 @@ pub(crate) fn dispatch_osc(parser: &mut InputParser, writer: &mut dyn ScreenWrit
             parser.cell.cell.link = writer.current_hyperlink_id();
         }
         9 => writer.osc_notification(&data),
-        10 => writer.osc_fg_colour(&data, end),
-        11 => writer.osc_bg_colour(&data, end),
+        // OSC 10/11 `?` queries return a reply the pane app is waiting on
+        // (Claude Code probes the background this way to pick its theme).
+        10 => {
+            if let Some(reply) = writer.osc_fg_colour(&data, end) {
+                parser.reply(&reply);
+            }
+        }
+        11 => {
+            if let Some(reply) = writer.osc_bg_colour(&data, end) {
+                parser.reply(&reply);
+            }
+        }
         12 => writer.osc_cursor_colour(&data, end),
         52 => writer.osc_clipboard(&data, end),
         104 => writer.osc_reset_palette(&data),

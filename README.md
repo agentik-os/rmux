@@ -278,6 +278,24 @@ On Windows, RMUX enables modern ConPTY passthrough when the OS supports it, but
 SIXEL display still depends on the outer terminal. Set
 `RMUX_CONPTY_NO_PASSTHROUGH=1` to disable that backend mode for troubleshooting.
 
+#### Colors: truecolor, OSC 10/11 theme probes
+
+Panes always see `COLORTERM=truecolor`; RMUX downgrades RGB output per attached
+client. A client advertises RGB through `COLORTERM` or terminfo — over SSH,
+`COLORTERM` is usually not forwarded, so such attaches render via the
+256-color quantization (tmux parity). To force truecolor for a client type:
+
+```tmux
+set -as terminal-features 'xterm-256color:RGB'
+```
+
+Apps probing the terminal theme (`OSC 10/11 ;?`, e.g. Claude Code) get the
+pane's OSC-set palette when one exists, else a **dark fallback**
+(white-on-black) — silence would hang the probe. On a light-themed outer
+terminal this guess is wrong; tell the app its theme explicitly (e.g. Claude
+Code `/config` → light theme). Forwarding the real client answer at attach is
+tracked as a follow-up.
+
 ## Verification
 
 The workspace is designed to be checked from source with locked dependencies:

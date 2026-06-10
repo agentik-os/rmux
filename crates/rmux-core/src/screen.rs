@@ -2,7 +2,7 @@
 
 use crate::grid::{Grid, GridCell, GridCellFlags, GridLine};
 use crate::hyperlinks::Hyperlinks;
-use crate::input::{mode, CellState, SavedState, ScreenWriter, COLOUR_DEFAULT};
+use crate::input::{mode, CellState, Colour, SavedState, ScreenWriter, COLOUR_DEFAULT, COLOUR_NONE};
 use crate::terminal_passthrough::{TerminalPassthrough, MAX_TERMINAL_PASSTHROUGH_PAYLOAD_BYTES};
 use crate::utf8::{combine_char as utf8_combine_char, CombineResult, Utf8Config};
 use rmux_proto::TerminalSize;
@@ -62,6 +62,10 @@ pub struct Screen {
     terminal_passthrough: Vec<TerminalPassthrough>,
     dropped_terminal_passthrough_count: u64,
     utf8_config: Utf8Config,
+    // Pane default fg/bg as set by OSC 10/11 (COLOUR_NONE when unset);
+    // OSC 110/111 reset them. Queried back by `OSC 10/11 ; ?` replies.
+    osc_default_fg: Colour,
+    osc_default_bg: Colour,
 }
 
 impl Screen {
@@ -94,6 +98,8 @@ impl Screen {
             terminal_passthrough: Vec::new(),
             dropped_terminal_passthrough_count: 0,
             utf8_config: Utf8Config::default(),
+            osc_default_fg: COLOUR_NONE,
+            osc_default_bg: COLOUR_NONE,
         };
         screen.reset_tabs();
         screen

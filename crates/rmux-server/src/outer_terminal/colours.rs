@@ -70,3 +70,45 @@ const BASIC_PALETTE: &[(u8, u8, u8)] = &[
     (255, 255, 255),
 ];
 const CUBE_LEVELS: &[u8] = &[0, 95, 135, 175, 215, 255];
+
+/// Finds the closest 256-palette index for an RGB value, comparing the 6x6x6
+/// colour cube against the grayscale ramp (port of tmux `colour_find_rgb`).
+/// Used to downgrade truecolor SGR for clients without RGB support.
+pub(super) fn nearest_256_index(r: u8, g: u8, b: u8) -> u8 {
+    fn to_6cube(value: u8) -> usize {
+        if value < 48 {
+            0
+        } else if value < 114 {
+            1
+        } else {
+            usize::from((value - 35) / 40)
+        }
+    }
+    fn dist_sq(ar: u8, ag: u8, ab: u8, br: u8, bg: u8, bb: u8) -> i32 {
+        let dr = i32::from(ar) - i32::from(br);
+        let dg = i32::from(ag) - i32::from(bg);
+        let db = i32::from(ab) - i32::from(bb);
+        dr * dr + dg * dg + db * db
+    }
+
+    let (qr, qg, qb) = (to_6cube(r), to_6cube(g), to_6cube(b));
+    let (cr, cg, cb) = (CUBE_LEVELS[qr], CUBE_LEVELS[qg], CUBE_LEVELS[qb]);
+    let cube_index = (16 + 36 * qr + 6 * qg + qb) as u8;
+    if (cr, cg, cb) == (r, g, b) {
+        return cube_index;
+    }
+
+    let gray_avg = (u16::from(r) + u16::from(g) + u16::from(b)) / 3;
+    let gray_index = if gray_avg > 238 {
+        23
+    } else {
+        gray_avg.saturating_sub(3) / 10
+    };
+    let gray = (8 + 10 * gray_index) as u8;
+
+    if dist_sq(gray, gray, gray, r, g, b) < dist_sq(cr, cg, cb, r, g, b) {
+        232 + gray_index as u8
+    } else {
+        cube_index
+    }
+}

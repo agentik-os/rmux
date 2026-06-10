@@ -118,9 +118,11 @@ pub(super) const DEFAULT_KITTY_FEATURES: &[&str] = &[
     "hyperlinks",
     "kitty-graphics",
 ];
+// No "RGB" here: TERM=xterm* does not guarantee truecolor (xterm-256color
+// terminfo lacks setrgbf/setrgbb), matching tmux's xterm feature set. RGB for
+// xterm-likes must come from COLORTERM, terminal-features, or a Tc override.
 pub(super) const DEFAULT_XTERM_FEATURES: &[&str] = &[
     "256",
-    "RGB",
     "bpaste",
     "clipboard",
     "mouse",
