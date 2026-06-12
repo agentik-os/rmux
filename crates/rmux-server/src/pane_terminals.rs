@@ -516,4 +516,43 @@ mod tests {
         assert!(state.pane_outputs.contains_key(&alpha));
         assert!(state.pane_outputs.contains_key(&gamma));
     }
+
+    #[tokio::test]
+    async fn rename_session_keeps_runtime_reachable_under_new_name() {
+        let mut state = HandlerState::default();
+        let aaa = session_name("aaa");
+        let bbb = session_name("bbb");
+
+        state
+            .sessions
+            .create_session(aaa.clone(), TerminalSize { cols: 80, rows: 24 })
+            .expect("session create succeeds");
+        state
+            .insert_initial_session_terminal(
+                &aaa,
+                InitialPaneSpawnOptions {
+                    socket_path: std::path::Path::new("/tmp/rmux-test.sock"),
+                    spawn_environment: None,
+                    environment_overrides: None,
+                    command: None,
+                    pane_alert_callback: None,
+                    pane_exit_callback: None,
+                },
+            )
+            .expect("initial terminals exist");
+
+        state
+            .rename_session(&aaa, &bbb)
+            .expect("rename succeeds");
+
+        assert!(state.contains_session_terminals(&bbb));
+        assert!(!state.contains_session_terminals(&aaa));
+        assert!(state.transcripts.contains_key(&bbb));
+        assert!(!state.transcripts.contains_key(&aaa));
+        assert!(state.pane_outputs.contains_key(&bbb));
+        assert!(!state.pane_outputs.contains_key(&aaa));
+        state
+            .active_pane_master(&bbb)
+            .expect("active pane master reachable under new name");
+    }
 }

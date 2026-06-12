@@ -385,3 +385,31 @@ fn temp_path(label: &str) -> std::path::PathBuf {
         std::process::id()
     ))
 }
+
+#[tokio::test]
+async fn capture_pane_works_after_session_rename() {
+    let handler = RequestHandler::new();
+    create_session(&handler, "ren-src").await;
+
+    let response = handler
+        .handle(Request::RenameSession(rmux_proto::RenameSessionRequest {
+            target: session_name("ren-src"),
+            new_name: session_name("ren-dst"),
+        }))
+        .await;
+    assert!(
+        matches!(response, Response::RenameSession(_)),
+        "rename-session must succeed: {response:?}"
+    );
+
+    let target = PaneTarget::with_window(session_name("ren-dst"), 0, 0);
+    let response = handler
+        .handle(Request::CapturePane(capture_pane_request(
+            target, None, None, true, None,
+        )))
+        .await;
+    let output = response
+        .command_output()
+        .unwrap_or_else(|| panic!("capture-pane must succeed after rename: {response:?}"));
+    let _ = output;
+}

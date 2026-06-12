@@ -188,21 +188,22 @@ impl HandlerState {
             .remove(session_name)
             .unwrap_or_default();
 
-        debug_assert!(transcripts
-            .insert(new_name.clone(), session_transcripts)
-            .is_none());
-        debug_assert!(pane_outputs
-            .insert(new_name.clone(), session_outputs)
-            .is_none());
+        // NOTE: the inserts MUST run unconditionally — wrapping them inside
+        // `debug_assert!` strips them from release builds (this exact bug
+        // silently dropped every renamed session's transcripts/outputs in
+        // production while all tests, built in debug, kept passing).
+        let replaced_transcripts = transcripts.insert(new_name.clone(), session_transcripts);
+        debug_assert!(replaced_transcripts.is_none());
+        let replaced_outputs = pane_outputs.insert(new_name.clone(), session_outputs);
+        debug_assert!(replaced_outputs.is_none());
         if !session_dead_panes.is_empty() {
-            debug_assert!(dead_panes
-                .insert(new_name.clone(), session_dead_panes)
-                .is_none());
+            let replaced_dead = dead_panes.insert(new_name.clone(), session_dead_panes);
+            debug_assert!(replaced_dead.is_none());
         }
         if !session_attached_rows.is_empty() {
-            debug_assert!(attached_submitted_rows
-                .insert(new_name.clone(), session_attached_rows)
-                .is_none());
+            let replaced_rows =
+                attached_submitted_rows.insert(new_name.clone(), session_attached_rows);
+            debug_assert!(replaced_rows.is_none());
         }
         let auto_named_windows = std::mem::take(&mut self.auto_named_windows)
             .into_iter()
