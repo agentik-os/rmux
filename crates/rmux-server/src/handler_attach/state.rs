@@ -58,6 +58,12 @@ pub(in crate::handler) struct ActiveAttach {
     pub(in crate::handler) mode_tree_frame: Option<Vec<u8>>,
     pub(in crate::handler) overlay: Option<ClientOverlayState>,
     pub(in crate::handler) display_panes: Option<DisplayPanesClientState>,
+    /// True while an oversized bracketed paste from this client is being
+    /// streamed to the pane: the opening `\x1b[200~` has been forwarded but the
+    /// closing `\x1b[201~` has not arrived yet. While set, ALL incoming live
+    /// input is paste body and must be forwarded verbatim — never decoded as
+    /// keys (a decoded newline becomes Enter and submits mid-paste).
+    pub(in crate::handler) paste_streaming: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

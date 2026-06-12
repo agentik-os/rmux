@@ -29,8 +29,6 @@ mod terminal_response;
 
 const MAX_RETAINED_ATTACHED_CONTROL_INPUT: usize = DEFAULT_MAX_FRAME_LENGTH;
 
-/// Bracketed-paste start marker (`ESC [ 2 0 0 ~`).
-const BRACKETED_PASTE_START: &[u8] = b"\x1b[200~";
 /// Bracketed-paste end marker (`ESC [ 2 0 1 ~`).
 const BRACKETED_PASTE_END: &[u8] = b"\x1b[201~";
 
@@ -387,16 +385,22 @@ impl RequestHandler {
             .map_err(io_other)
     }
 
-    /// Flush an oversized, still-unterminated bracketed paste.
+    /// Flush an oversized, still-unterminated bracketed paste and switch the
+    /// attach into streaming-paste mode.
     ///
     /// `pending_input` is expected to begin with the bracketed-paste start
     /// marker (it was classified as `BracketedPasteDecode::Partial`). If the
     /// buffer has not yet exceeded the retain cap, this leaves it untouched and
     /// returns `Ok(false)` (the caller keeps accumulating until the closing
-    /// marker arrives). Once it exceeds the cap, the leading start marker is
-    /// stripped and the paste body is forwarded verbatim to the pane, retaining
-    /// only a short tail in case the closing `\x1b[201~` is split across reads.
-    /// This replaces the previous hard error, which dropped the entire paste.
+    /// marker arrives). Once it exceeds the cap, the buffered prefix —
+    /// INCLUDING the leading `\x1b[200~` start marker, exactly as the
+    /// `Matched` path forwards it — is written verbatim to the pane, retaining
+    /// only a short tail in case the closing `\x1b[201~` is split across
+    /// reads, and `paste_streaming` is set on the attach so every subsequent
+    /// read keeps streaming as paste body (live.rs) until the closing marker
+    /// arrives. Without the marker + state, the target app saw the body as
+    /// typed input and the rest of the paste was decoded as keys — every
+    /// newline became Enter and submitted mid-paste.
     ///
     /// Returns `Ok(true)` when bytes were forwarded to the pane.
     async fn flush_oversized_bracketed_paste(
@@ -406,12 +410,6 @@ impl RequestHandler {
     ) -> io::Result<bool> {
         if pending_input.len() <= MAX_RETAINED_ATTACHED_CONTROL_INPUT {
             return Ok(false);
-        }
-
-        // Strip the leading start marker on the first flush so the literal
-        // `\x1b[200~` is not injected into the PTY as paste body.
-        if pending_input.starts_with(BRACKETED_PASTE_START) {
-            pending_input.drain(..BRACKETED_PASTE_START.len());
         }
 
         // Keep a tail the size of the end marker minus one so a closing
@@ -424,7 +422,30 @@ impl RequestHandler {
         let flush_len = pending_input.len() - keep;
         let body: Vec<u8> = pending_input.drain(..flush_len).collect();
         self.write_attached_bytes(attach_pid, &body).await?;
+        self.set_attached_paste_streaming(attach_pid, true).await;
         Ok(true)
+    }
+
+    /// True while this attach is inside an oversized bracketed paste whose
+    /// closing `\x1b[201~` has not arrived yet (see
+    /// `flush_oversized_bracketed_paste`).
+    pub(in crate::handler) async fn attached_paste_streaming(&self, attach_pid: u32) -> bool {
+        let active_attach = self.active_attach.lock().await;
+        active_attach
+            .by_pid
+            .get(&attach_pid)
+            .is_some_and(|active| active.paste_streaming)
+    }
+
+    pub(in crate::handler) async fn set_attached_paste_streaming(
+        &self,
+        attach_pid: u32,
+        value: bool,
+    ) {
+        let mut active_attach = self.active_attach.lock().await;
+        if let Some(active) = active_attach.by_pid.get_mut(&attach_pid) {
+            active.paste_streaming = value;
+        }
     }
 
     pub(crate) async fn flush_attached_pending_escape_input(

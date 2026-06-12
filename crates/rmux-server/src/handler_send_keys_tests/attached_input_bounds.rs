@@ -37,14 +37,16 @@ async fn create_attached_live_session(
 }
 
 #[tokio::test]
-async fn live_attach_unterminated_bracketed_paste_flushes_body_without_error() {
+async fn live_attach_unterminated_bracketed_paste_streams_with_markers() {
     // An unterminated bracketed paste that grows past the retain cap must NOT
     // error out (that would drop the whole paste and could kill the attach).
-    // Instead the leading `\x1b[200~` start marker is stripped and the paste
-    // body is flushed verbatim to the pane, retaining only a short tail in case
-    // the closing `\x1b[201~` is split across reads.
+    // The buffered prefix — INCLUDING the leading `\x1b[200~` start marker,
+    // exactly as the Matched path forwards it — is flushed verbatim and the
+    // attach switches into streaming-paste mode: every subsequent read is
+    // forwarded as paste body (newlines must NOT decode into Enter) until the
+    // closing `\x1b[201~` arrives, even when that marker is split across
+    // reads. Bytes after the closing marker decode as ordinary input again.
     const PASTE_END_LEN: usize = b"\x1b[201~".len();
-    const PASTE_START_LEN: usize = b"\x1b[200~".len();
 
     let handler = RequestHandler::new();
     let alpha = session_name("alpha");
@@ -76,15 +78,41 @@ async fn live_attach_unterminated_bracketed_paste_flushes_body_without_error() {
     let retained_tail = PASTE_END_LEN - 1;
     assert_eq!(pending_input.len(), retained_tail);
     assert!(pending_input.iter().all(|byte| *byte == b'a'));
+    assert!(handler.attached_paste_streaming(requester_pid).await);
 
-    // Body flushed verbatim, start marker stripped, only the tail withheld.
-    let total_body = overflow.len(); // start marker is not part of the body
-    let _ = PASTE_START_LEN;
-    let expected_flushed = vec![b'a'; total_body - retained_tail];
+    // Stream more body containing newlines, then close with a marker split
+    // across two reads, followed by ordinary trailing input.
+    handler
+        .handle_attached_live_input(requester_pid, &mut pending_input, b"line-1\nline-2\nbbb")
+        .await
+        .expect("streamed paste body chunk");
+    assert!(handler.attached_paste_streaming(requester_pid).await);
+    assert_eq!(pending_input.len(), retained_tail);
+
+    handler
+        .handle_attached_live_input(requester_pid, &mut pending_input, b"end\x1b[2")
+        .await
+        .expect("split closing marker first half");
+    assert!(handler.attached_paste_streaming(requester_pid).await);
+
+    handler
+        .handle_attached_live_input(requester_pid, &mut pending_input, b"01~tail")
+        .await
+        .expect("split closing marker second half");
+    assert!(!handler.attached_paste_streaming(requester_pid).await);
+    assert!(pending_input.is_empty());
+
+    // The concatenation of all flushes must be the EXACT byte stream: both
+    // markers preserved, every newline verbatim (never an Enter `\r`), and
+    // the post-paste "tail" forwarded as normal input.
+    let mut expected = b"\x1b[200~".to_vec();
+    expected.extend_from_slice(&overflow);
+    expected.extend_from_slice(b"line-1\nline-2\nbbbend\x1b[201~");
+    expected.extend_from_slice(b"tail");
     let state = handler.state.lock().await;
     assert_eq!(
         state.pane_input_capture_for_test(&capture_target),
-        Some(expected_flushed)
+        Some(expected)
     );
 }
 

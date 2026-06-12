@@ -5,7 +5,7 @@ use super::super::io_other;
 use super::super::pane_prompt_input::{
     decode_utf8_char, is_extended_key_prefix, is_utf8_lead_byte, utf8_expected_len,
 };
-use super::bracketed_paste::{decode_bracketed_paste, BracketedPasteDecode};
+use super::bracketed_paste::{decode_bracketed_paste, find_subslice, BracketedPasteDecode};
 use super::kitty_graphics::{decode_kitty_graphics_apc, KittyGraphicsApcDecode};
 use super::terminal_response::{decode_terminal_response, TerminalResponseDecode};
 use super::{is_enter_key, is_mouse_prefix, retain_partial_attached_control_input};
@@ -59,6 +59,43 @@ impl RequestHandler {
             let _ = self
                 .clear_session_alerts_on_focus(&session_name, window_index)
                 .await;
+        }
+        // Oversized-paste streaming: the opening `\x1b[200~` was already
+        // forwarded by `flush_oversized_bracketed_paste`, so until the closing
+        // `\x1b[201~` arrives EVERYTHING here is paste body — forward it
+        // verbatim and never run it through the key/mouse decoders (a decoded
+        // newline becomes Enter and submits mid-paste). A short tail is kept
+        // buffered in case the closing marker is split across reads.
+        if self.attached_paste_streaming(attach_pid).await {
+            pending_input.extend_from_slice(bytes);
+            if let Some(end) = find_subslice(pending_input, super::BRACKETED_PASTE_END) {
+                let through_marker: Vec<u8> = pending_input
+                    .drain(..end + super::BRACKETED_PASTE_END.len())
+                    .collect();
+                self.write_attached_bytes(attach_pid, &through_marker)
+                    .await?;
+                self.set_attached_paste_streaming(attach_pid, false).await;
+                if pending_input.is_empty() {
+                    return Ok(true);
+                }
+                // Bytes after the closing marker are ordinary live input again.
+                let remaining = std::mem::take(pending_input);
+                Box::pin(self.handle_attached_live_input_inner(
+                    attach_pid,
+                    pending_input,
+                    &remaining,
+                ))
+                .await?;
+                return Ok(true);
+            }
+            let keep = super::BRACKETED_PASTE_END.len().saturating_sub(1);
+            if pending_input.len() <= keep {
+                return Ok(false);
+            }
+            let flush_len = pending_input.len() - keep;
+            let body: Vec<u8> = pending_input.drain(..flush_len).collect();
+            self.write_attached_bytes(attach_pid, &body).await?;
+            return Ok(true);
         }
         if self.prompt_active(attach_pid).await {
             self.handle_attached_prompt_input(attach_pid, pending_input, bytes)
