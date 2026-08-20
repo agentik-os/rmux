@@ -1,0 +1,531 @@
+{
+ "block": 1,
+ "phase": "MONTH 1, Awareness & Authority",
+ "_note": "Days 1..30 of the 90-day plan. Reuses voice/pillars/hooks from 01-strategy/content-strategy.md + 02-copy/*. Distinct angles from the existing 14-day calendar.json (NO repeated post text). mode=auto → engine posts text+visual; mode=manual → human ritual (founder video, community engagement). ~5 manual across 30 days, max 1/day. Public distribution channels are upstream Helvesec/rmux (scope note in product-marketing.md). {SYSTEM} = 03-visual-identity/higgsfield/system-prompt.md prepended.",
+ "days": [
+  {
+   "dayOffset": 1,
+   "posts": [
+    {
+     "slot": "09:00",
+     "platform": "twitter",
+     "pillar": "Agentic Terminal",
+     "mode": "auto",
+     "estMinutes": 6,
+     "text": "tmux is great. But it was built for humans, not agents.\n\nA human attaches, looks at a pane, and decides. An agent needs to do that from code: detach, reattach, and read the pane's state without a pair of eyes.\n\nThat gap is the whole reason I started building rmux.",
+     "visualPrompt": "{SYSTEM} Subject: a single dark terminal pane split down the middle, left half labeled 'human' with a blinking mint cursor, right half labeled 'agent' reaching in via a thin connector line to the same pane. Scene: the same session shared by a human and an agent. Format: 1:1. Action: quiet, engineered clarity. Lighting: flat UI glow, one mint focal light on the shared cursor. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark lower-left; matte; no people.",
+     "manualNote": "",
+     "cta": "github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 2,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "twitter",
+     "pillar": "Programmable Terminal",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "Your terminal has no API.\n\nEvery other layer of your stack does, your DB, your HTTP server, your queue. But the terminal? You spawn a process and scrape bytes off stdout like it's 1999.\n\nrmux fixes that. A real, typed API for the terminal you already live in.",
+     "visualPrompt": "{SYSTEM} Subject: a matte concept card contrasting two rows, top 'stdout: raw bytes' shown as a grey unstructured blob, bottom 'PaneSnapshot { cols, rows, content }' shown as three clean typed fields glowing mint. Scene: raw scraping vs a typed API. Format: 4:5. Action: the messy blob resolving into structured fields. Lighting: even, low-noise, one mint focal light on the typed fields. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    },
+    {
+     "slot": "15:00",
+     "platform": "linkedin",
+     "pillar": "Build-in-Public",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "A category nobody named yet: the programmable terminal multiplexer.\n\nWe have terminal multiplexers built for humans (tmux, zellij, screen). We have automation frameworks built for browsers (Playwright, Puppeteer). But the terminal, where half of infrastructure and now most autonomous agents actually run, sits in between, with no first-class programmatic surface.\n\nThat in-between is where I've spent the last months. rmux keeps the full tmux-compatible CLI (all 90 commands) and adds what the lineage never had: a daemon-backed typed SDK, structured pane snapshots, and a Ratatui widget, so a session a human starts by hand can be detached, reattached, and driven from code.\n\nNot a better TUI. A terminal with an API.\n\nOpen-source, dual MIT/Apache → github.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a three-column positioning map on canvas-black, 'human multiplexers (tmux/zellij)' left, 'browser automation (Playwright)' right, and a central highlighted column 'programmable terminal, rmux' bridging them. Scene: a category map. Format: 1:1. Action: rmux occupying the empty middle slot. Lighting: schematic, flat, one mint focal light on the central rmux column. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the rmux column; thin #1E2733 dividers; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "Star github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 3,
+   "posts": [
+    {
+     "slot": "09:00",
+     "platform": "twitter",
+     "pillar": "Agentic Terminal",
+     "mode": "auto",
+     "estMinutes": 6,
+     "text": "I lost a 3-hour agent run to a dropped SSH connection.\n\nThe agent was halfway through a refactor. My laptop slept, the tunnel died, and the whole session went with it. No log I could reattach to, no state I could read back.\n\nThat night I stopped treating the terminal as disposable. A long-lived agent needs a runtime that outlives the connection, and lets you inspect what it did afterward. So I started using rmux.",
+     "visualPrompt": "{SYSTEM} Subject: a terminal pane labeled 'agent · refactor 3h' still running, with an SSH tunnel icon breaking apart in the top corner and a mint cursor that keeps blinking regardless. Scene: session survives a dropped connection. Format: 16:9. Action: reassurance, the work continues past the break. Lighting: flat UI glow, one mint focal light on the surviving pane. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent, functional amber #F0883E only on a small 'running' status glyph; monospaced 'rmux' wordmark; multiplex-grid; matte; real plausible agent log lines; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 4,
+   "posts": [
+    {
+     "slot": "11:00",
+     "platform": "linkedin",
+     "pillar": "Build-in-Public",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "Unpopular opinion for a terminal tool: compatibility is a feature, not a constraint.\n\nA lot of new dev tools ask you to relearn everything to get one new capability. That's why most of them die in a side project folder, the switching cost dwarfs the payoff.\n\nWith rmux I made the opposite bet. All 90 tmux commands are implemented. Your .tmux.conf migrates on first run. Your muscle memory, your prefix key, your panes, untouched. The new capability (a typed SDK, structured snapshots, native Windows) rides on top of a workflow you already have.\n\nThe cost of trying it is one cargo install. That, to me, is the whole difference between a tool people admire and a tool people actually adopt.\n\ngithub.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a balance/scale motif rendered as two terminal panes, left pane 'switching cost' nearly empty (just 'cargo install'), right pane 'what you gain' listing SDK · snapshots · native Windows. Scene: cost vs payoff. Format: 4:5. Action: the payoff side clearly outweighing. Lighting: flat, one mint focal light on the payoff pane. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux --locked"
+    }
+   ]
+  },
+  {
+   "dayOffset": 5,
+   "posts": [
+    {
+     "slot": "12:00",
+     "platform": "twitter",
+     "pillar": "tmux, Upgraded",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "\"Why not just use tmux control mode?\"\n\nBecause control mode hands you text to parse. When the output format shifts, your automation quietly breaks.\n\nrmux gives you a typed PaneSnapshot { cols, rows, content } and wait_for_text() instead, an interface that doesn't rot when a version bumps. Parsing is not an API.",
+     "visualPrompt": "{SYSTEM} Subject: a split card, left 'tmux control mode' shown as a fragile stream of text being regex-parsed with a red-ish crack, right 'rmux typed SDK' shown as a stable structured PaneSnapshot in mint. Scene: brittle parsing vs a typed contract. Format: 1:1. Action: the typed side holding firm. Lighting: even, low-noise, one mint focal light on the typed side. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the rmux side; monospaced 'rmux' wordmark; matte; plausible output; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    }
+   ]
+  },
+  {
+   "dayOffset": 6,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "reddit",
+     "pillar": "Engineering / Build-in-Public",
+     "mode": "manual",
+     "estMinutes": 35,
+     "text": "Title: Why I gave the terminal a typed SDK instead of another control-mode wrapper\n\nMost ways to automate a terminal boil down to: spawn, write bytes, read bytes, regex the result. tmux control mode is a bit nicer but you're still parsing text that can change between versions. I wanted an interface that doesn't rot.\n\nSo in rmux (a Rust, tmux-compatible multiplexer) the daemon exposes a typed SDK. ensure_session is idempotent (attach-or-create). send_text writes input. wait_for_text blocks until a string appears, no sleep-and-hope. snapshot() returns a structured PaneSnapshot { cols, rows, content } instead of a byte blob, so you assert on terminal state like it's a DOM node.\n\nThe part I want to discuss with this sub: the trade-offs of a daemon-backed typed surface vs a text protocol. Latency, versioning, how you keep three clients (CLI, SDK, Ratatui widget) honest against one protocol, and where a typed snapshot is the wrong abstraction. It's a v0.3.1 preview, forbid-unsafe in the upper crates, no network at runtime. Repo: github.com/Helvesec/rmux, happy to go deep in the comments.",
+     "visualPrompt": "",
+     "manualNote": "Post to r/rust as a text discussion (lead with the engineering trade-off, link last). No hero image. Reply to every substantive comment for the first 2 hours, this is a thinking-out-loud thread, not an announcement. Screenshot a real snapshot() call if someone asks for specifics.",
+     "cta": "engage in comments; repo link at the end"
+    }
+   ]
+  },
+  {
+   "dayOffset": 7,
+   "posts": [
+    {
+     "slot": "17:00",
+     "platform": "twitter",
+     "pillar": "Engineering",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "One daemon. Three surfaces.\n\nThe CLI a human types, the rmux-sdk crate code calls, and the ratatui-rmux widget you embed, all speak the same local protocol. There's no \"scripting API that lags behind the real thing,\" because there is no separate scripting API. It's the same runtime, three ways in.",
+     "visualPrompt": "{SYSTEM} Subject: the three-surfaces → one-daemon architecture, three labeled boxes (CLI / rmux-sdk / ratatui-rmux) connected by thin #1E2733 connectors to one central daemon node. Scene: authoritative schematic on canvas-black. Format: 16:9. Action: static, engineered symmetry, all three surfaces equal. Lighting: schematic flat, mint focal light on the daemon node only. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the daemon; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 8,
+   "posts": [
+    {
+     "slot": "09:00",
+     "platform": "linkedin",
+     "pillar": "Programmable Terminal",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "There's a pattern I keep seeing in agent infrastructure: teams reinvent a fragile terminal-control layer, in-house, every time.\n\nIt always looks the same. A pty wrapper. A stdout reader. A pile of regexes to know when a command \"finished.\" A retry loop for when the SSH tunnel drops. Six months later it's the least-loved, most-load-bearing 800 lines in the repo.\n\nrmux is an attempt to make that a library instead of a liability. connect_or_start() handles the daemon lifecycle. ensure_session() is idempotent. wait_for_text() replaces the sleep-and-hope. snapshot() gives you typed state instead of parsed bytes. And the session survives the dropped connection, because the daemon, not your process, owns it.\n\nIf your team has written that layer twice, this is the third version you don't have to.\n\ngithub.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a 'before / after' engineering frame, left a tangled grey pane labeled 'in-house pty + stdout scraping + retry loop', right a clean single pane labeled 'rmux-sdk' with four tidy method rows. Scene: a fragile home-grown layer replaced by a library. Format: 4:5. Action: complexity collapsing into a clean API. Lighting: even, one mint focal light on the rmux side. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the rmux side; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    }
+   ]
+  },
+  {
+   "dayOffset": 9,
+   "posts": [
+    {
+     "slot": "11:00",
+     "platform": "twitter",
+     "pillar": "Agentic Terminal",
+     "mode": "auto",
+     "estMinutes": 6,
+     "text": "Inspect what an agent typed, without attaching.\n\nWith tmux you have to attach, scroll, and squint. With rmux the pane is a value you can read:\n\n```rust\nlet snap = pane.snapshot()?;\nprintln!(\"{}\", snap.content);\n```\n\nNo eyes required. Which is exactly what you need when there are twenty agents and one of you.",
+     "visualPrompt": "{SYSTEM} Subject: a grid of small agent panes with one pane pulled forward and its content read out as a typed PaneSnapshot beside it, no human attach step shown. Scene: reading agent state programmatically at scale. Format: 16:9. Action: one pane inspected out of many, calm control. Lighting: flat UI glow, one mint focal light on the inspected pane. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; multiplex-grid; matte; real plausible agent log lines; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    }
+   ]
+  },
+  {
+   "dayOffset": 10,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "devto",
+     "pillar": "Programmable Terminal",
+     "mode": "auto",
+     "estMinutes": 35,
+     "text": "# ensure_session: the idempotent primitive terminal automation was missing\n\nMost terminal automation bugs come from one question: does this session already exist? You spawn a duplicate, or you attach to something that isn't there, and now your script is in an undefined state.\n\nrmux answers it with one call.\n\n## The primitive\n```rust\nuse rmux_sdk::connect_or_start;\n\nlet client = connect_or_start()?;      // start the daemon if needed, else attach\nlet pane = client.ensure_session(\"build\")?; // attach if it exists, create if it doesn't\n```\n\nBoth calls are idempotent. Run the script once or a hundred times, you converge on exactly one daemon and exactly one \"build\" session. No \"session already exists\" errors, no orphaned duplicates, no lifecycle bookkeeping in your own code.\n\n## Why it matters for agents\nAn agent supervisor that restarts should reattach to the work in progress, not spawn a second copy of it. Idempotent ensure_session makes \"reattach or create\" a single, safe line, the same property that makes Kubernetes reconcilers sane, applied to terminal sessions.\n\n## Then drive it\n```rust\npane.send_text(\"cargo build --release\\n\")?;\npane.wait_for_text(\"Compiling\")?;      // synchronize, don't sleep\nlet snap = pane.snapshot()?;         // typed PaneSnapshot { cols, rows, content }\nassert!(snap.content.contains(\"Compiling\"));\n```\n\nSame daemon, three surfaces (CLI, rmux-sdk, ratatui-rmux). It's a v0.3.1 preview, all 90 tmux commands work, bugs get fixed fast. Try it: github.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a diagram of idempotency, a single 'ensure_session(\\\"build\\\")' call with two arrows ('exists → attach' / 'missing → create') both converging on ONE session node. Scene: converge-not-duplicate. Format: 16:9 blog cover. Action: two paths resolving to one stable node. Lighting: schematic flat, one mint focal light on the single resulting session. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; thin #1E2733 connectors; monospaced 'rmux' wordmark; plausible Rust; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    }
+   ]
+  },
+  {
+   "dayOffset": 11,
+   "posts": [
+    {
+     "slot": "13:00",
+     "platform": "twitter",
+     "pillar": "Terminal Testing",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "We have Playwright for the DOM. What's the Playwright for the terminal?\n\nYou need two things to test a TUI honestly: a way to wait for a real state, and a way to assert on it. rmux gives you both, wait_for_text() to synchronize, a typed PaneSnapshot to assert. No sleeps, no brittle byte-diffs. That's terminal testing, finally deterministic.",
+     "visualPrompt": "{SYSTEM} Subject: a 'Playwright-for-terminals' concept card, a browser-style test bar reimagined as a terminal test bar, one assertion row 'snapshot.content.contains(...)' resolving to a mint PASS. Scene: DOM-testing metaphor applied to a terminal. Format: 4:5. Action: an assertion locking to PASS. Lighting: even, one mint focal light on PASS. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, mint #36E2C4 on PASS only; monospace; matte; no people.",
+     "manualNote": "",
+     "cta": "github.com/Helvesec/rmux"
+    },
+    {
+     "slot": "16:00",
+     "platform": "twitter",
+     "pillar": "Build-in-Public",
+     "mode": "manual",
+     "estMinutes": 30,
+     "text": "Community engagement sprint (no scheduled post text, this is a human ritual).",
+     "visualPrompt": "",
+     "manualNote": "30-min engagement sprint, not a broadcast. Search X for 'tmux', 'terminal multiplexer', 'agent over SSH', 'Ratatui', and reply genuinely to 5-8 threads from the engineer-to-engineer voice, answer the actual question, drop a code line if it helps, mention rmux ONLY where it truly fits (never copy-paste pitch). Also reply to every comment on this block's earlier posts. Goal: relationships, not impressions.",
+     "cta": "reply to 5-8 relevant threads; no link-spam"
+    }
+   ]
+  },
+  {
+   "dayOffset": 12,
+   "posts": [
+    {
+     "slot": "16:00",
+     "platform": "linkedin",
+     "pillar": "Engineering",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "The safety posture I insisted on for rmux, and why it's not just Rust-flavored marketing.\n\nThis is software you leave running for days, holding your sessions and increasingly your agents. So three properties were non-negotiable:\n\n1. #![forbid(unsafe_code)] in the upper crates. Unsafe is isolated to the OS/PTY boundary where it genuinely belongs, not sprinkled through business logic.\n2. No network at runtime, and it's enforced by a build guardrail, not a README promise. The multiplexer that runs your infra has no business phoning home.\n3. Locked, reproducible builds, dual MIT/Apache. What you compile is what ships.\n\nNone of this is glamorous. It's the difference between a tool you demo and a tool you trust with a long-lived process. For infrastructure, boring guarantees are the feature.\n\ngithub.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: three clean status glyphs stacked on canvas-black, 'forbid(unsafe_code)', 'no network at runtime', 'locked reproducible builds', each a matte engineered badge. Scene: an infra-grade safety-posture card. Format: 1:1. Action: quiet authority, nothing flashy. Lighting: schematic flat, one mint rim-light on the forbid-unsafe glyph only. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 13,
+   "posts": [
+    {
+     "slot": "09:00",
+     "platform": "twitter",
+     "pillar": "tmux, Upgraded",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "All 90 tmux commands. Rewritten in Rust. Now on Windows.\n\nNot a subset. Not \"the common ones.\" The full command surface, so switching is muscle memory, not a rewrite. And it runs natively on Windows, ConPTY + per-user Named Pipes, no WSL shim, which tmux structurally can't do.",
+     "visualPrompt": "{SYSTEM} Subject: a tidy grid hinting at '90 commands' as small monospaced command tokens, with a single 'Windows · native ConPTY' badge glowing mint in the corner. Scene: full-surface parity plus native Windows. Format: 16:9. Action: completeness and reach. Lighting: flat, one mint focal light on the Windows badge. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux --locked"
+    }
+   ]
+  },
+  {
+   "dayOffset": 14,
+   "posts": [
+    {
+     "slot": "11:00",
+     "platform": "reddit",
+     "pillar": "tmux, Upgraded",
+     "mode": "manual",
+     "estMinutes": 35,
+     "text": "Title: If you've ever wanted tmux to run natively on Windows, it does now (rmux), AMA about compatibility\n\nI kept hitting the same wall: tmux everywhere on Linux/macOS, then a WSL shim (or nothing) on Windows. rmux is a Rust, tmux-compatible multiplexer, all 90 commands implemented, that runs natively on Windows via ConPTY + per-user Named Pipes, no WSL. Your .tmux.conf migrates automatically on first run (one env var opts out), so the keybindings and workflow come with you.\n\nRather than pitch, I'd like to stress-test the compatibility claim with people who actually push tmux hard. Ask me about: nested sessions, copy-mode, your specific prefix setup, pane splitting behavior, a weird line in your .tmux.conf, or exactly how the Windows PTY path behaves. I'll tell you honestly what's solid and what's still rough in this v0.3.1 preview.\n\nRepo: github.com/Helvesec/rmux",
+     "visualPrompt": "",
+     "manualNote": "Post to r/commandline as a text AMA. Have a real .tmux.conf and a native Windows terminal open to screenshot live answers. Reply to every top comment; be candid about preview rough edges. Value-first, never announcement-spam.",
+     "cta": "answer questions live; repo link at the end"
+    }
+   ]
+  },
+  {
+   "dayOffset": 15,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "twitter",
+     "pillar": "Programmable Terminal",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "Same keybindings as tmux. Plus an SDK. Plus a Ratatui widget.\n\nThat's the whole pitch in one line. You lose nothing you already type, and you gain a typed way to drive sessions from Rust and a way to embed a real live pane in your own TUI. Additive, not a migration.",
+     "visualPrompt": "{SYSTEM} Subject: three stacked labeled rows on canvas-black, 'same keybindings' (grey chrome), '+ typed SDK' (mint), '+ Ratatui widget' (mint), a clean additive stack. Scene: nothing lost, capabilities added. Format: 1:1. Action: additive layering. Lighting: flat, mint focal light on the two '+' rows. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    },
+    {
+     "slot": "15:00",
+     "platform": "linkedin",
+     "pillar": "Build-in-Public",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "Building in public means saying the honest thing: rmux is a v0.3.1 preview, and I'd rather tell you that than oversell it.\n\nWhat's real today: all 90 tmux-compatible commands are implemented, the feature matrix is verified across Linux, macOS, and Windows, and five working demos ship in the repo, from a multi-agent orchestrator to a Playwright-style TUI test harness. What's still preview-grade: rough edges you'll find, which is exactly why the issue tracker matters.\n\nHere's the deal I'm offering early adopters: try it, file a bug, and watch it get fixed fast. A preview with a responsive maintainer beats a \"1.0\" nobody answers. Your bug report genuinely shapes what v0.4 becomes.\n\ncargo install rmux --locked → github.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: an honest 'v0.3.1 preview' status card, a version badge, a small row 'all 90 commands · verified matrix · 5 demos', and an open issue-tracker glyph. Scene: transparent build-in-public status. Format: 4:5. Action: candid, grounded. Lighting: flat, one mint focal light on the version badge. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux --locked · file an issue"
+    }
+   ]
+  },
+  {
+   "dayOffset": 16,
+   "posts": [
+    {
+     "slot": "12:00",
+     "platform": "twitter",
+     "pillar": "Agentic Terminal",
+     "mode": "auto",
+     "estMinutes": 6,
+     "text": "Broadcast a command to many agent panes:\n\n```rust\nfor name in [\"planner\", \"coder\", \"reviewer\"] {\n  client.ensure_session(name)?.send_text(\"status\\n\")?;\n}\n```\n\nThen snapshot() each to see where they all landed. One human, many agents, one loop. This is what \"tmux for agents\" actually looks like in code.",
+     "visualPrompt": "{SYSTEM} Subject: three labeled agent panes (planner / coder / reviewer) receiving the same broadcast 'status' command echoed across all three, one mint cursor on the focused pane. Scene: fan-out broadcast to many. Format: 16:9. Action: coordinated control across panes. Lighting: flat UI glow, single mint focal light. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; multiplex-grid; matte; real plausible agent log lines; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 17,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "linkedin",
+     "pillar": "Programmable Terminal",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "\"Anything the CLI can do, your code can do too\" is easy to say. Here's why it's structurally true in rmux, not a slogan.\n\nMost tools have a product and, bolted on later, an automation API that trails behind it. Two code paths, two levels of support, one of them always stale.\n\nrmux has one local daemon and a single protocol. The CLI is a client of that protocol. rmux-sdk is a client of that protocol. The ratatui-rmux widget is a client of that protocol. There is no separate \"scripting mode\" that can drift, because the human path and the code path are the same path.\n\nThe upshot: a session you started by hand at the prompt is byte-for-byte the same session your code attaches to, snapshots, and drives. That symmetry is the actual product, everything else is a consequence of it.\n\ngithub.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a schematic showing ONE protocol line with three identical client taps hanging off it (CLI / SDK / widget), emphasizing they are peers not a hierarchy. Scene: one protocol, equal clients. Format: 16:9 OG. Action: symmetry made visible. Lighting: schematic flat, mint focal light on the shared protocol line. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the protocol line; thin #1E2733 connectors; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "Star github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 18,
+   "posts": [
+    {
+     "slot": "17:00",
+     "platform": "twitter",
+     "pillar": "Engineering",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "Getting tmux onto Windows without a WSL shim meant doing the unglamorous PTY work: ConPTY for the console, per-user Named Pipes for the IPC.\n\nNo Cygwin, no WSL translation layer, no \"works if you squint.\" Native Windows sessions that speak the same daemon protocol as Linux and macOS. Cross-platform is a build target here, not an aspiration.",
+     "visualPrompt": "{SYSTEM} Subject: a small platform-parity schematic, three OS rows (Linux / macOS / Windows) each connecting to the same daemon node, the Windows row annotated 'ConPTY + Named Pipes'. Scene: true cross-platform, Windows native. Format: 1:1. Action: three platforms, one protocol. Lighting: schematic flat, one mint focal light on the Windows row. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the Windows row; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 19,
+   "posts": [
+    {
+     "slot": "09:00",
+     "platform": "youtube",
+     "pillar": "Build-in-Public",
+     "mode": "manual",
+     "estMinutes": 70,
+     "text": "rmux, why a terminal needs an API (2-min founder walkthrough)\n\nA short, talking-to-camera-plus-terminal walkthrough of the one idea behind rmux: the terminal is the last major layer of the stack with no programmatic surface. I show a live session, start work, drop the SSH connection, reattach, and read the pane back with pane.snapshot(), and explain why that matters more now that agents, not just humans, live in the terminal.\n\nHonest v0.3.1 preview, open-source (MIT/Apache). cargo install rmux → github.com/Helvesec/rmux",
+     "visualPrompt": "",
+     "manualNote": "RECORD a 2-min founder video: you on camera (or voiceover) over a live rmux terminal. Beat sheet: (1) 'every layer of your stack has an API except the terminal' (2) live: start a task, drop SSH, reattach, snapshot() reads it back (3) 'now that agents live in the terminal, that gap matters'. Keep the brand terminal theme (canvas #0B0E14, mint cursor). This is a personal-voice asset, post as a short + pin under the LinkedIn/X week. Repurpose the clip across platforms.",
+     "cta": "Watch the walkthrough · cargo install rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 20,
+   "posts": [
+    {
+     "slot": "11:00",
+     "platform": "twitter",
+     "pillar": "Terminal Testing",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "Flaky TUI tests almost always come from one sin: sleep(2) and hope it's ready.\n\nReplace the hope with a synchronization primitive:\n\n```rust\npane.wait_for_text(\"listening on\")?;\nassert!(pane.snapshot()?.content.contains(\"0 errors\"));\n```\n\nwait_for_text blocks on a real state, snapshot asserts on it. Deterministic terminal tests, no timing roulette.",
+     "visualPrompt": "{SYSTEM} Subject: a before/after test frame, top 'sleep(2) // hope' shown crossed out in muted grey, bottom 'wait_for_text(...) → snapshot' resolving to a mint PASS. Scene: replacing timing hacks with synchronization. Format: 4:5. Action: the flaky approach struck out, the deterministic one passing. Lighting: even, one mint focal light on PASS. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, mint #36E2C4 on PASS only; monospace; plausible Rust; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    }
+   ]
+  },
+  {
+   "dayOffset": 21,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "linkedin",
+     "pillar": "Build-in-Public",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "Three weeks of talking about rmux in public, and the objection I get most is the healthiest one: \"zellij already exists.\"\n\nIt does, and it's excellent, at being a human terminal UX. Batteries-included, beautiful defaults, great for a person at a keyboard. If that's your need, use it.\n\nrmux isn't competing for that seat. It's built for the case zellij and tmux structurally don't serve: driving and inspecting terminals, and agents, from code, with full tmux-CLI compatibility underneath. A typed SDK, structured pane snapshots, a Ratatui widget, native Windows. The overlap is the word \"multiplexer\"; the design center is completely different.\n\nDifferent job, different tool. Naming the boundary honestly is more useful than pretending there's a fight.\n\ngithub.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a two-lane frame, left lane 'human terminal UX' (grey, calm), right lane 'programmable / agent-ready' (mint accent), with rmux clearly in the right lane and no head-to-head arrow. Scene: different jobs, not a fight. Format: 4:5. Action: clear boundary, honest positioning. Lighting: flat, one mint focal light on the right lane. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the right lane; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 22,
+   "posts": [
+    {
+     "slot": "12:00",
+     "platform": "twitter",
+     "pillar": "Programmable Terminal",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "Detachable. Scriptable. Inspectable.\n\nThose three words are the whole design center of rmux. Detach a session so it outlives the connection. Script it from a typed SDK instead of scraping stdout. Inspect its state as a structured snapshot. tmux gave you the first. rmux gives you all three.",
+     "visualPrompt": "{SYSTEM} Subject: three stacked word-rows on canvas-black, 'detachable', 'scriptable', 'inspectable', each paired with a tiny monospaced glyph (a broken-tether, a code bracket, a magnifier). Scene: the three-word design center. Format: 1:1. Action: a clean triad. Lighting: flat, mint focal light cycling to the third word 'inspectable'. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 23,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "devto",
+     "pillar": "tmux, Upgraded",
+     "mode": "auto",
+     "estMinutes": 35,
+     "text": "# Embedding a live terminal pane in your Ratatui app with ratatui-rmux\n\nRatatui is wonderful for building TUIs, but the moment you want a real shell inside your app, you're stuck: reimplement a terminal emulator, or shell out and lose control. ratatui-rmux gives you a third option, embed a real, live pane driven by the same daemon as your CLI.\n\n## Add it\n```bash\ncargo add ratatui-rmux\n```\n\n## Drop a pane into your layout\n```rust\nuse ratatui_rmux::TerminalPane;\n\n// inside your draw loop:\nlet pane = TerminalPane::new(&session);  // a real pane, not a mock\nframe.render_widget(pane, area);     // renders live terminal output\n```\n\nThe pane you render is the same session your rmux CLI can attach to and your rmux-sdk code can snapshot(). It's not a screenshot and it's not a reimplemented emulator, it's the actual multiplexed pane, surfaced as a Ratatui widget.\n\n## Why this is the interesting part\nThree surfaces, one daemon: the CLI a human types, the SDK your code calls, and this widget you embed all speak one protocol. So you can build a custom TUI dashboard that shows live agent panes, while a script drives those same panes and a human can attach to any of them from another terminal, all consistent, because it's one runtime.\n\nv0.3.1 preview, dual MIT/Apache. Repo + issues: github.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a Ratatui dashboard window with grey widget chrome (a sidebar, a status bar) and ONE embedded live terminal pane glowing mint at its center. Scene: a real pane embedded inside a custom TUI. Format: 16:9 blog cover. Action: the embedded pane clearly live, not a mock. Lighting: even, one mint focal light on the embedded pane only. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the embedded pane; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add ratatui-rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 24,
+   "posts": [
+    {
+     "slot": "11:00",
+     "platform": "twitter",
+     "pillar": "Agentic Terminal",
+     "mode": "auto",
+     "estMinutes": 6,
+     "text": "The agent-supervisor pattern nobody ships cleanly: reattach-or-start.\n\nWhen your orchestrator restarts, it should pick the in-progress agent sessions back up, not spawn duplicates. With rmux that's one idempotent line:\n\n```rust\nlet pane = client.ensure_session(agent_id)?; // attach if alive, create if not\n```\n\nCrash-safe orchestration for free, because the daemon owns the sessions, not your process.",
+     "visualPrompt": "{SYSTEM} Subject: a supervisor node restarting (a small refresh glyph) and reconnecting via ensure_session to the SAME set of still-running agent panes, no duplicates spawned. Scene: crash-safe reattach. Format: 16:9. Action: the supervisor rejoining existing work cleanly. Lighting: flat UI glow, one mint focal light on the reattach connector. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent, amber #F0883E only on a small 'running' glyph; monospaced 'rmux' wordmark; multiplex-grid; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    }
+   ]
+  },
+  {
+   "dayOffset": 25,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "linkedin",
+     "pillar": "Engineering / Build-in-Public",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "A small architecture decision I'm proud of: in rmux, the daemon owns the sessions, not your terminal, and not your script.\n\nIt sounds obvious, but it's the hinge everything else swings on. Because a separate long-lived daemon holds the PTYs:\n- your SSH connection can drop and the work survives,\n- your orchestrator can crash and restart without losing state,\n- a human can attach from one place while code drives the same session from another,\n- and any of the three surfaces (CLI, SDK, widget) can come and go independently.\n\nEvery headline feature, detach/reattach, agent orchestration, inspectable snapshots, the shared runtime, is downstream of that one ownership choice. Get the ownership boundary right and the capabilities almost fall out for free.\n\nThat's the kind of decision that doesn't demo well but defines whether a tool is trustworthy. github.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a central 'daemon' node clearly OWNING several session/PTY blocks, with transient clients (a terminal, a script, a widget) attaching and detaching around it via dashed connectors. Scene: the daemon owns state; clients are ephemeral. Format: 4:5. Action: stable core, coming-and-going clients. Lighting: schematic flat, one mint focal light on the daemon core. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the daemon; thin #1E2733 connectors; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "Star github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 26,
+   "posts": [
+    {
+     "slot": "12:00",
+     "platform": "twitter",
+     "pillar": "tmux, Upgraded",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "The multiplexer humans and agents share.\n\ntmux made one runtime for many human panes. rmux makes one runtime for humans and agents at once, same sessions, same keys, same daemon, but now readable and drivable from code. The terminal stops being a place only a person can operate.",
+     "visualPrompt": "{SYSTEM} Subject: a single multiplex grid where some panes are labeled 'human' and some 'agent', all sharing the same mint-cursor daemon underneath. Scene: one shared runtime for humans and agents. Format: 1:1. Action: coexistence, one runtime. Lighting: flat UI glow, one mint focal light on the shared daemon indicator. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; multiplex-grid; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux"
+    },
+    {
+     "slot": "16:00",
+     "platform": "reddit",
+     "pillar": "Programmable Terminal",
+     "mode": "manual",
+     "estMinutes": 35,
+     "text": "Title: Driving long-lived terminal jobs over SSH from code, typed snapshots instead of capture-pane scraping\n\nA lot of us end up automating remote terminal work the same fragile way: ssh in, run something, tail a log or scrape tmux capture-pane, and guess when it's \"done.\" It works until an output format changes or a connection drops mid-run.\n\nI've been building rmux to make that layer boring. A local daemon owns the sessions, so the work survives a dropped SSH connection. From code you get connect_or_start(), an idempotent ensure_session(), send_text(), wait_for_text() to synchronize on a real state, and snapshot() returning a typed PaneSnapshot { cols, rows, content } instead of a byte blob. Full tmux-compatible CLI on the same daemon, plus native Windows.\n\nGenuinely curious how this sub handles remote terminal orchestration today, what's your current approach to (a) surviving SSH drops and (b) knowing a remote command finished? Trade-offs welcome; it's a v0.3.1 preview. Repo: github.com/Helvesec/rmux",
+     "visualPrompt": "",
+     "manualNote": "Post to r/devops as a value-first text post that ASKS a question (their orchestration approach), not just pitches. No hero image. Reply to every answer for the first 2 hours and compare approaches honestly. Never announcement-spam.",
+     "cta": "engage in comments; repo link at the end"
+    }
+   ]
+  },
+  {
+   "dayOffset": 27,
+   "posts": [
+    {
+     "slot": "17:00",
+     "platform": "twitter",
+     "pillar": "Terminal Testing",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "One of the five demos we ship is a full Playwright-style TUI test harness (~1,495 LOC).\n\nIt drives a real terminal app, waits on real states with wait_for_text(), and asserts on typed snapshots, no sleeps, no byte-diff brittleness. If you maintain a CLI or TUI and \"we don't really test the UI\" sounds familiar, this is the pattern to steal.",
+     "visualPrompt": "{SYSTEM} Subject: a CI test-run panel driving a TUI-under-test, a column of terminal assertions (wait_for_text, snapshot.content.contains) each resolving to a mint PASS, one '~1,495 LOC harness' caption. Scene: Playwright-style terminal testing in CI. Format: 4:5. Action: a full green/mint run completing. Lighting: even, mint on PASS states only. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, mint #36E2C4 on PASS only; deterministic clean layout; monospace; matte; no people.",
+     "manualNote": "",
+     "cta": "github.com/Helvesec/rmux"
+    }
+   ]
+  },
+  {
+   "dayOffset": 28,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "linkedin",
+     "pillar": "Build-in-Public",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "A month of building rmux in public taught me the pitch in one sentence: keep the tmux you know; gain the SDK you wished it had.\n\nEverything else is detail underneath that. The full 90-command tmux CLI so switching is free. A daemon-backed typed SDK so you drive sessions from code instead of scraping stdout. Structured snapshots so you inspect and test terminals deterministically. A Ratatui widget so you embed a live pane. Native Windows so it runs where tmux can't. And a daemon that owns your sessions so agents survive dropped connections.\n\nOne runtime. Three surfaces. Built for the moment the terminal stopped being a human-only place.\n\nIf that resonates, the best thing you can do is try it and file the first bug you hit: cargo install rmux --locked → github.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a clean summary card, the line 'keep the tmux you know; gain the SDK you wished it had' set in neo-grotesk, with six tiny feature glyphs beneath (CLI · SDK · snapshots · widget · Windows · daemon). Scene: the one-sentence pitch. Format: 1:1. Action: confident summary. Lighting: flat, one mint focal light on the 'SDK' half of the line. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo install rmux --locked"
+    }
+   ]
+  },
+  {
+   "dayOffset": 29,
+   "posts": [
+    {
+     "slot": "11:00",
+     "platform": "twitter",
+     "pillar": "Programmable Terminal",
+     "mode": "auto",
+     "estMinutes": 5,
+     "text": "The fastest way to understand rmux is to run four lines:\n\n```rust\nlet client = connect_or_start()?;\nlet pane = client.ensure_session(\"demo\")?;\npane.send_text(\"echo hello\\n\")?;\nprintln!(\"{}\", pane.wait_for_text(\"hello\").and(pane.snapshot())?.content);\n```\n\nConnect, ensure, send, wait+snapshot. That's the terminal-with-an-API in one breath. cargo add rmux-sdk.",
+     "visualPrompt": "{SYSTEM} Subject: a single tidy Rust code card, four lines (connect_or_start / ensure_session / send_text / wait_for_text+snapshot) with the final snapshot content glowing mint. Scene: the whole SDK loop in one breath. Format: 4:5. Action: the last line resolving to a mint result. Lighting: even, low-noise, one mint focal light on the resolved snapshot. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, mint #36E2C4 on the result only; monospace alignment; plausible Rust; matte; no people.",
+     "manualNote": "",
+     "cta": "cargo add rmux-sdk"
+    }
+   ]
+  },
+  {
+   "dayOffset": 30,
+   "posts": [
+    {
+     "slot": "10:00",
+     "platform": "linkedin",
+     "pillar": "Build-in-Public",
+     "mode": "auto",
+     "estMinutes": 10,
+     "text": "Closing out month one of building rmux in public with the thesis, stated plainly.\n\nFor forty years the terminal has been a place you operate by hand. That was fine when the only operator was a human. It isn't fine anymore: more and more of the work in a terminal is done by autonomous agents that need to be started, supervised, inspected, and orchestrated from code, over SSH, at scale, surviving dropped connections.\n\nA multiplexer built for that world has to be three things at once: fully tmux-compatible so humans lose nothing, programmable so code is a first-class operator, and inspectable so state is a value you can read, not pixels you squint at. That's the whole design of rmux, and it's why I think \"programmable terminal multiplexer\" is a category, not a feature.\n\nThe terminal is getting an API. If you build or run agents, I'd love your eyes on it, and your first bug report. github.com/Helvesec/rmux",
+     "visualPrompt": "{SYSTEM} Subject: a quiet thesis card, 'the terminal is getting an API' set in neo-grotesk on generous canvas-black negative space, a single mint blinking cursor after the sentence, small monospaced 'rmux' wordmark and repo handle at the bottom. Scene: month-one thesis statement. Format: 1:1. Action: calm, declarative, forward-looking. Lighting: flat, one mint focal light on the cursor only. Palette canvas #0B0E14 / panel #11161F / ink #E6EDF3 / muted #7D8590, ONE mint #36E2C4 accent on the cursor; monospaced 'rmux' wordmark; matte; no people.",
+     "manualNote": "",
+     "cta": "Star github.com/Helvesec/rmux"
+    }
+   ]
+  }
+ ]
+}

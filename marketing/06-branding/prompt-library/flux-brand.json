@@ -1,0 +1,104 @@
+{
+ "$schema": "flux-2/brand-json@2026 (spec §4.4, object-bound hex, positive phrasing, no negative prompts, <=8 role-named refs)",
+ "project": "rmux",
+ "note": "Hex ONLY works bound to a named object (docs.bfl.ml). No negative prompts, phrase positively; the KILL block (kill-list.md §2) is a gate/review guard, not pasted here. Generate WITHOUT any human avatar (scene-led). R-CITE: all hex from DA.md §Color palette.",
+ "tokens": {
+  "bg": "#0B0E14",
+  "bg2": "#11161F",
+  "surface": "#1E2733",
+  "fg": "#E6EDF3",
+  "textMuted": "#7D8590",
+  "accent": "#36E2C4",
+  "amber": "#F0883E"
+ },
+
+ "templates": {
+
+  "agent_orchestration_hero": {
+   "scene": "a near-black terminal canvas field in deep terminal-black hex #0B0E14, quiet and precise",
+   "subjects": [
+    {
+     "description": "a 4-pane terminal canvas divided by thin grid-line dividers in muted border hex #1E2733, each pane showing different agent session output in soft off-white hex #E6EDF3",
+     "position": "filling the frame, straight-on",
+     "action": "displaying live plausible rmux shell output, panes active"
+    },
+    {
+     "description": "a blinking cursor in mint hex #36E2C4 inside the top-left pane, marking the active session, the single focal accent in frame",
+     "position": "top-left pane, cursor position",
+     "action": "blinking, the only colored element in the frame"
+    },
+    {
+     "description": "a small status glyph in functional-amber hex #F0883E in one pane labeled 'agent running', a status cue, not a decorative element",
+     "position": "bottom-right pane, inline with shell output",
+     "action": "steady, indicating active agent"
+    }
+   ],
+   "style": "terminal-native product photography, matte dark, precise, the pane grid is the composition",
+   "color_palette": ["#0B0E14", "#1E2733", "#E6EDF3", "#36E2C4"],
+   "lighting": "screen glow as the only light source, matte dark studio, no spill or reflections",
+   "mood": "engineered, precise, calm-under-load, powerful-but-quiet",
+   "camera": { "angle": "straight-on, slight low angle to read all panes", "lens": "35mm", "depth_of_field": "deep, all panes in focus" },
+   "grain": "none on screen content (must stay crisp); at most faint grain on the hardware surround",
+   "aspect_ratio": "16:9",
+   "watermark": "lowercase 'rmux' in Geist Mono in soft off-white hex #E6EDF3, bottom-left corner, small"
+  },
+
+  "sdk_code_panel": {
+   "scene": "a dark split-screen editorial, editor left, terminal right, on a near-black field hex #0B0E14",
+   "subjects": [
+    {
+     "description": "a code panel in deep surface hex #11161F showing Rust SDK code: ensure_session, send_text, snapshot, wait_for_text, in Geist Mono typeface in soft off-white hex #E6EDF3",
+     "position": "left 60% of frame",
+     "action": "displaying clean, readable Rust code"
+    },
+    {
+     "description": "the resolved PaneSnapshot return type in the terminal panel, highlighted in mint hex #36E2C4, the single focal accent",
+     "position": "right 40% of frame, the resolved return value",
+     "action": "showing the typed snapshot value resolved, the only bright element"
+    },
+    {
+     "description": "a thin pane divider in border hex #1E2733 between the two panels",
+     "position": "center vertical divider",
+     "action": "separating code from terminal output"
+    }
+   ],
+   "style": "editorial code composite, monospaced Geist Mono, matte, precise, the code carries it",
+   "color_palette": ["#0B0E14", "#11161F", "#E6EDF3", "#36E2C4"],
+   "lighting": "flat even, screen glow only",
+   "mood": "typed, clean, no scraping, the aha of programmatic control",
+   "camera": { "angle": "straight-on, flat", "lens": "50mm", "depth_of_field": "deep, all text sharp" },
+   "grain": "none on screen; keep all text crisp",
+   "aspect_ratio": "4:5",
+   "watermark": "lowercase 'rmux' in Geist Mono hex #E6EDF3, bottom-right corner, small"
+  },
+
+  "type_led_stat_card": {
+   "scene": "a type-led editorial layout on a deep terminal-black field hex #0B0E14, left-aligned, heavy whitespace",
+   "subjects": [
+    {
+     "description": "one large tabular-figure number in soft off-white hex #E6EDF3, '90' large, set in Geist Mono",
+     "position": "left-aligned, dominating the upper area",
+     "action": "set as clean monospaced typography, the visual anchor"
+    },
+    {
+     "description": "the number '90' also rendered in mint hex #36E2C4 as a single focal accent layer",
+     "position": "overlapping the #E6EDF3 number, the only color in frame",
+     "action": "the signature accent on this one stat"
+    },
+    {
+     "description": "a label in muted text hex #7D8590: 'tmux-compatible commands' set in Geist, below the number",
+     "position": "below the large number, left-aligned",
+     "action": "providing context at body scale"
+    }
+   ],
+   "style": "editorial typography, no photo, Geist Mono on the number, Geist on the label, whitespace carries it",
+   "color_palette": ["#0B0E14", "#E6EDF3", "#36E2C4"],
+   "lighting": "flat editorial, even",
+   "mood": "credible, precise, proof-first, the number does the work",
+   "camera": { "angle": "flat-on", "lens": "50mm", "depth_of_field": "deep" },
+   "grain": "none",
+   "aspect_ratio": "1:1",
+   "watermark": "lowercase 'rmux' in Geist Mono hex #E6EDF3, bottom-right corner, small"
+  }
+ }
+}

@@ -1,0 +1,104 @@
+{
+ "project": "rmux",
+ "profileSlug": "rmux",
+ "timezone": "Europe/Paris",
+ "_note": "Publishing queue derived from 01-strategy/content-strategy.md + 02-copy/social-content.md. Each item -> omega-zernio post / bulk-upload. Do NOT publish until content validated + accounts connected. scheduledFor is null by design; operator sets real datetimes. HN/GitHub items are manual-only reminders, never auto-posted.",
+ "posts": [
+  {
+   "title": "tmux for the agentic era (flagship thread)",
+   "platform": "twitter",
+   "pillar": "Agentic Terminal",
+   "scheduledFor": null,
+   "draftHook": "tmux is great. But it was built for humans, not agents. rmux is the Rust, tmux-compatible multiplexer with a typed SDK, detach, reattach, and inspect long-lived agents from code. 7-tweet thread.",
+   "media": "rmux-tmux-for-agents-thread-16x9.png"
+  },
+  {
+   "title": "I lost a 3-hour agent run to a dropped SSH",
+   "platform": "twitter",
+   "pillar": "Agentic Terminal",
+   "scheduledFor": null,
+   "draftHook": "I lost a 3-hour agent run when my SSH dropped. So I started using rmux: persistent detachable sessions + a typed snapshot() of exactly what the agent did.",
+   "media": "rmux-lost-agent-ssh-story-1x1.png"
+  },
+  {
+   "title": "SDK quickstart, drive a terminal from Rust",
+   "platform": "linkedin",
+   "pillar": "Programmable Terminal",
+   "scheduledFor": null,
+   "draftHook": "Driving a terminal from code used to mean scraping stdout and praying. rmux returns a typed PaneSnapshot and lets you wait_for_text() before reading. Here's the whole quickstart.",
+   "media": "rmux-sdk-quickstart-tutorial-16x9.png"
+  },
+  {
+   "title": "Stop scraping capture-pane",
+   "platform": "twitter",
+   "pillar": "Programmable Terminal",
+   "scheduledFor": null,
+   "draftHook": "Stop scraping `tmux capture-pane`. rmux gives you a typed PaneSnapshot, cols, rows, content, that doesn't break when output formatting changes.",
+   "media": "rmux-stop-scraping-capture-pane-4x5.png"
+  },
+  {
+   "title": "rmux vs tmux, compatible, not a compromise",
+   "platform": "reddit",
+   "pillar": "tmux, Upgraded",
+   "scheduledFor": null,
+   "draftHook": "r/rust: I built a tmux-compatible multiplexer in Rust (all 90 commands) with a typed SDK + daemon. Here's the 3-surface architecture and why. Your .tmux.conf migrates.",
+   "media": "rmux-vs-tmux-comparison-1x1.png"
+  },
+  {
+   "title": "tmux on Windows, finally",
+   "platform": "twitter",
+   "pillar": "tmux, Upgraded",
+   "scheduledFor": null,
+   "draftHook": "tmux on Windows? With rmux, natively, ConPTY + per-user Named Pipes, no WSL shim. All 90 tmux commands, your .tmux.conf migrates.",
+   "media": "rmux-tmux-on-windows-finally-16x9.png"
+  },
+  {
+   "title": "Assert on a terminal like it's a DOM",
+   "platform": "linkedin",
+   "pillar": "Terminal Testing",
+   "scheduledFor": null,
+   "draftHook": "What if you could test a TUI like a webpage? rmux: wait_for_text() + typed snapshots = deterministic terminal tests in CI. Playwright-for-terminal, built in.",
+   "media": "rmux-playwright-for-terminals-16x9.png"
+  },
+  {
+   "title": "Three surfaces, one daemon",
+   "platform": "twitter",
+   "pillar": "Build-in-Public / Engineering",
+   "scheduledFor": null,
+   "draftHook": "One local daemon. Three surfaces: the rmux CLI, the rmux-sdk crate, and the ratatui-rmux widget. Anything one can do, the others can too. Here's the architecture.",
+   "media": "rmux-three-surfaces-one-daemon-16x9.png"
+  },
+  {
+   "title": "forbid-unsafe, no network at runtime",
+   "platform": "twitter",
+   "pillar": "Build-in-Public / Engineering",
+   "scheduledFor": null,
+   "draftHook": "A terminal multiplexer you can trust in infra: #![forbid(unsafe_code)] in the upper crates, no network at runtime (enforced by a build guardrail), locked builds, dual MIT/Apache.",
+   "media": "rmux-forbid-unsafe-no-network-1x1.png"
+  },
+  {
+   "title": "ratatui-rmux, a live terminal pane in your TUI",
+   "platform": "linkedin",
+   "pillar": "Programmable Terminal",
+   "scheduledFor": null,
+   "draftHook": "`cargo add ratatui-rmux` and drop a real, live terminal pane into your Ratatui app, backed by the typed SDK. ~6 lines to render. Ecosystem launch.",
+   "media": "rmux-ratatui-rmux-widget-showcase-16x9.png"
+  },
+  {
+   "title": "Multi-agent orchestration demo (screencast)",
+   "platform": "youtube",
+   "pillar": "Agentic Terminal",
+   "scheduledFor": null,
+   "draftHook": "60-second screencast: orchestrating N agents from one rmux daemon, detach, reattach, snapshot, broadcast. Built on the shipped orchestration demo.",
+   "media": "rmux-orchestration-demo-short-9x16.png"
+  },
+  {
+   "title": "Show HN: rmux, tmux for agents (MANUAL ONLY)",
+   "platform": "manual-hn",
+   "pillar": "Agentic Terminal",
+   "scheduledFor": null,
+   "draftHook": "MANUAL, never auto-post. Show HN: rmux, tmux for agents (Rust multiplexer with a typed SDK). Post early US morning on a green release; author answers every comment.",
+   "media": null
+  }
+ ]
+}
